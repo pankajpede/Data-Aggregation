@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { labelColumns } from '@/ai/flows/label-columns';
-import { mockExtractedData, mockTransactionTypes } from '@/lib/mock-data';
+import { mockExtractedData, mockTransactionTypes, mockHoldingTypes } from '@/lib/mock-data';
 import type { ExtractedTable } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +39,7 @@ export default function ExtractPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTransactionTypes, setSelectedTransactionTypes] = useState<string[]>([]);
+  const [selectedHoldingTypes, setSelectedHoldingTypes] = useState<string[]>([]);
 
   const { toast } = useToast();
 
@@ -179,6 +181,7 @@ export default function ExtractPage() {
     setSelectedTableIds([]);
     setColumnConfig([]);
     setSelectedTransactionTypes([]);
+    setSelectedHoldingTypes([]);
   }
 
   const handleTableSelection = (tableId: string, checked: boolean) => {
@@ -193,6 +196,16 @@ export default function ExtractPage() {
 
   const handleTransactionTypeSelection = (typeName: string, checked: boolean) => {
     setSelectedTransactionTypes(prev => {
+      if (checked) {
+        return [...prev, typeName];
+      } else {
+        return prev.filter(name => name !== typeName);
+      }
+    });
+  };
+
+  const handleHoldingTypeSelection = (typeName: string, checked: boolean) => {
+    setSelectedHoldingTypes(prev => {
       if (checked) {
         return [...prev, typeName];
       } else {
@@ -314,6 +327,37 @@ export default function ExtractPage() {
                                 </Collapsible>
                             ))}
                             </div>
+                        ) : table.name === 'Holdings' ? (
+                          <div className="p-4 mt-4 border-t">
+                            {mockHoldingTypes.map(type => (
+                              <Collapsible key={type.name} className="py-2">
+                                <div className="flex items-center space-x-3">
+                                  <Checkbox
+                                    id={`holding-${type.name}`}
+                                    onCheckedChange={(checked) => handleHoldingTypeSelection(type.name, !!checked)}
+                                    checked={selectedHoldingTypes.includes(type.name)}
+                                  />
+                                  <CollapsibleTrigger className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                      <Label htmlFor={`holding-${type.name}`} className="font-normal cursor-pointer">{type.name}</Label>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <span>View Columns</span>
+                                        <ChevronRight className="h-4 w-4" />
+                                      </div>
+                                    </div>
+                                  </CollapsibleTrigger>
+                                </div>
+                                <CollapsibleContent className="pl-8 mt-2 space-y-2">
+                                  {type.columns.map(col => (
+                                    <div key={col} className="flex items-center space-x-2">
+                                      <Checkbox id={`col-${type.name}-${col}`} />
+                                      <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                    </div>
+                                  ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+                            ))}
+                          </div>
                         ) : (
                             <div className="max-h-60 overflow-auto rounded-md border mt-4">
                             <Table>

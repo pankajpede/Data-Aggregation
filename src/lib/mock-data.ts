@@ -1,3 +1,4 @@
+
 import type { Session, ExtractedTable } from '@/types';
 
 export const mockSessions: Session[] = [
@@ -42,4 +43,8 @@ export const mockTransactionTypes = [
     { name: 'Income', columns: ['Date', 'Source', 'Gross Amount', 'Taxes', 'Net Amount'] },
     { name: 'Foreign Dividend', columns: ['Ex-Date', 'Payable-Date', 'Amount (Foreign)', 'FX Rate', 'Amount (USD)'] },
     { name: 'Depository Bank (ADR) Fee', columns: ['Date', 'Description', 'Amount'] },
+];
+
+export const mockHoldingTypes = [
+    { name: 'Holdings', columns: ['Security ID', 'Description', 'Quantity', 'Market Value', 'Portfolio %'] },
 ];
