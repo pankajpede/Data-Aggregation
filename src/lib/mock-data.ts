@@ -11,7 +11,7 @@ export const mockExtractedData: { tables: ExtractedTable[] } = {
   tables: [
     {
       id: 'table_1',
-      name: 'Transaction Summary (Page 1)',
+      name: 'Transactions',
       headers: ['Transaction Date', 'Details', 'Amount (USD)', 'Category', 'Status'],
       rows: [
         ['2023-10-01', 'Invoice #INV-001 Payment', '5000.00', 'Revenue', 'Completed'],
@@ -23,13 +23,13 @@ export const mockExtractedData: { tables: ExtractedTable[] } = {
     },
     {
       id: 'table_2',
-      name: 'Expense Breakdown (Page 2)',
-      headers: ['Expense ID', 'Item', 'Cost', 'Vendor', 'Purchase Date'],
+      name: 'Holdings',
+      headers: ['Security ID', 'Description', 'Quantity', 'Market Value', 'Portfolio %'],
       rows: [
-        ['E-001', 'Laptop', '1200.00', 'TechStore', '2023-09-15'],
-        ['E-002', 'Office Chairs (x4)', '800.00', 'OfficeDepot', '2023-09-18'],
-        ['E-003', 'Marketing Campaign', '2500.00', 'Adgency', '2023-09-20'],
-        ['E-004', 'Catering for event', '650.00', 'TastyBites', '2023-09-22'],
+        ['AAPL', 'Apple Inc.', '100', '15000.00', '15.0'],
+        ['GOOGL', 'Alphabet Inc.', '50', '12500.00', '12.5'],
+        ['MSFT', 'Microsoft Corp.', '75', '22500.00', '22.5'],
+        ['TSLA', 'Tesla Inc.', '30', '7500.00', '7.5'],
       ],
     },
   ],
