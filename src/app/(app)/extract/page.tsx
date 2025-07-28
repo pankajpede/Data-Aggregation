@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { labelColumns } from '@/ai/flows/label-columns';
-import { mockExtractedData } from '@/lib/mock-data';
+import { mockExtractedData, mockTransactionTypes } from '@/lib/mock-data';
 import type { ExtractedTable } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,7 @@ export default function ExtractPage() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
+  const [selectedTransactionTypes, setSelectedTransactionTypes] = useState<string[]>([]);
 
   const { toast } = useToast();
 
@@ -175,6 +176,7 @@ export default function ExtractPage() {
     setSelectedFile(null);
     setSelectedTableIds([]);
     setColumnConfig([]);
+    setSelectedTransactionTypes([]);
   }
 
   const handleTableSelection = (tableId: string, checked: boolean) => {
@@ -186,6 +188,16 @@ export default function ExtractPage() {
         }
     })
   }
+
+  const handleTransactionTypeSelection = (typeName: string, checked: boolean) => {
+    setSelectedTransactionTypes(prev => {
+      if (checked) {
+        return [...prev, typeName];
+      } else {
+        return prev.filter(name => name !== typeName);
+      }
+    });
+  };
 
   const StepIndicator = () => (
     <nav aria-label="Progress">
@@ -255,22 +267,39 @@ export default function ExtractPage() {
                     <Checkbox id={table.id} onCheckedChange={(checked) => handleTableSelection(table.id, !!checked)} checked={selectedTableIds.includes(table.id)} />
                     <Label htmlFor={table.id} className="text-lg font-semibold cursor-pointer">{table.name}</Label>
                   </div>
-                  <div className="max-h-60 overflow-auto rounded-md border">
-                      <Table>
-                      <TableHeader>
-                          <TableRow>
-                          {table.headers.map((h, i) => <TableHead key={i}>{h}</TableHead>)}
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {table.rows.slice(0, 3).map((row, i) => (
-                          <TableRow key={i}>
-                              {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
-                          </TableRow>
-                          ))}
-                      </TableBody>
-                      </Table>
-                  </div>
+
+                  {table.name === 'Transactions' ? (
+                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+                        {mockTransactionTypes.map(type => (
+                            <div key={type.name} className="flex items-center space-x-2">
+                                <Checkbox 
+                                    id={`txn-${type.name}`} 
+                                    onCheckedChange={(checked) => handleTransactionTypeSelection(type.name, !!checked)}
+                                    checked={selectedTransactionTypes.includes(type.name)}
+                                />
+                                <Label htmlFor={`txn-${type.name}`} className="font-normal cursor-pointer">{type.name}</Label>
+                            </div>
+                        ))}
+                     </div>
+                  ) : (
+                    <div className="max-h-60 overflow-auto rounded-md border">
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            {table.headers.map((h, i) => <TableHead key={i}>{h}</TableHead>)}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {table.rows.slice(0, 3).map((row, i) => (
+                            <TableRow key={i}>
+                                {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        </Table>
+                    </div>
+                  )}
+
                 </div>
               ))}
             </CardContent>
@@ -420,3 +449,5 @@ export default function ExtractPage() {
     </div>
   );
 }
+
+    

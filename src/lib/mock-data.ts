@@ -34,3 +34,14 @@ export const mockExtractedData: { tables: ExtractedTable[] } = {
     },
   ],
 };
+
+export const mockTransactionTypes = [
+    { name: 'Dividend' },
+    { name: 'Sales' },
+    { name: 'Purchase' },
+    { name: 'Income' },
+    { name: 'Foreign Dividend' },
+    { name: 'Depository Bank (ADR) Fee' },
+];
+
+    
