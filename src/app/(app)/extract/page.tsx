@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, ChevronsDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -28,8 +28,7 @@ type ColumnConfig = {
 const STEPS = [
   { id: 1, name: 'Upload PDF' },
   { id: 2, name: 'Preview & Select' },
-  { id: 3, name: 'Configure Columns' },
-  { id: 4, name: 'Visualize & Export' },
+  { id: 3, name: 'Visualize & Export' },
 ];
 
 export default function ExtractPage() {
@@ -44,7 +43,19 @@ export default function ExtractPage() {
   const { toast } = useToast();
 
   const selectedTables = useMemo(() => {
-    return mockExtractedData.tables.filter(t => selectedTableIds.includes(t.id)) || [];
+    const tables = mockExtractedData.tables.filter(t => selectedTableIds.includes(t.id)) || [];
+    
+    const initialConfig = tables.flatMap(table => (
+        table.headers.map(header => ({
+            originalHeader: header,
+            newHeader: header,
+            included: true,
+            tableId: table.id
+        }))
+    ));
+    setColumnConfig(initialConfig);
+
+    return tables;
   }, [selectedTableIds]);
 
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>([]);
@@ -89,20 +100,11 @@ export default function ExtractPage() {
     }, 1500);
   };
   
-  const handleProceedToConfig = () => {
+  const handleProceedToFinalStep = () => {
     if (selectedTables.length === 0) {
       toast({ variant: 'destructive', title: 'No tables selected', description: 'Please select at least one table to continue.' });
       return;
     }
-    const initialConfig = selectedTables.flatMap(table => (
-        table.headers.map(header => ({
-            originalHeader: header,
-            newHeader: header,
-            included: true,
-            tableId: table.id
-        }))
-    ));
-    setColumnConfig(initialConfig);
     setCurrentStep(3);
   };
   
@@ -273,7 +275,7 @@ export default function ExtractPage() {
             <Card className="w-full max-w-4xl">
               <CardHeader>
                 <CardTitle>Preview & Select Tables</CardTitle>
-                <CardDescription>We found {mockExtractedData.tables.length} tables. Select the data you want to extract.</CardDescription>
+                <CardDescription>We found {mockExtractedData.tables.length} tables. Select the data you want to extract and configure the columns.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockExtractedData.tables.map((table: ExtractedTable) => (
@@ -318,9 +320,12 @@ export default function ExtractPage() {
                                 </div>
                                 <CollapsibleContent className="pl-8 mt-2 space-y-2">
                                     {type.columns.map(col => (
-                                    <div key={col} className="flex items-center space-x-2">
-                                        <Checkbox id={`col-${type.name}-${col}`} />
-                                        <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                    <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
+                                        <div className='flex items-center gap-2'>
+                                            <Checkbox id={`col-${type.name}-${col}`} defaultChecked/>
+                                            <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                        </div>
+                                        <Input defaultValue={col} className="h-8"/>
                                     </div>
                                     ))}
                                 </CollapsibleContent>
@@ -349,9 +354,12 @@ export default function ExtractPage() {
                                 </div>
                                 <CollapsibleContent className="pl-8 mt-2 space-y-2">
                                   {type.columns.map(col => (
-                                    <div key={col} className="flex items-center space-x-2">
-                                      <Checkbox id={`col-${type.name}-${col}`} />
-                                      <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                    <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
+                                      <div className='flex items-center gap-2'>
+                                        <Checkbox id={`col-${type.name}-${col}`} defaultChecked/>
+                                        <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                      </div>
+                                      <Input defaultValue={col} className="h-8"/>
                                     </div>
                                   ))}
                                 </CollapsibleContent>
@@ -382,64 +390,7 @@ export default function ExtractPage() {
               </CardContent>
             </Card>
           );
-        case 3:
-          if (!selectedTables) return null;
-          return (
-            <div className="w-full space-y-6">
-            {selectedTables.map(table => (
-              <Card key={table.id} className="w-full">
-                <CardHeader>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div>
-                      <CardTitle>{table.name}: Configure Columns</CardTitle>
-                      <CardDescription>Select columns to include and rename them as needed.</CardDescription>
-                    </div>
-                    <Button onClick={() => handleAiLabel(table)} disabled={isAiLoading}>
-                      {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                      AI-Label Columns
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                      <Table>
-                      <TableHeader>
-                          <TableRow>
-                          <TableHead className="w-12">Include</TableHead>
-                          <TableHead>Original Header</TableHead>
-                          <TableHead>New Header</TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {columnConfig.filter(c => c.tableId === table.id).map((config, index) => {
-                            const originalIndex = columnConfig.findIndex(c => c.tableId === config.tableId && c.originalHeader === config.originalHeader);
-                            return (
-                                <TableRow key={originalIndex}>
-                                    <TableCell>
-                                    <Checkbox
-                                        checked={config.included}
-                                        onCheckedChange={(checked) => handleColumnConfigChange(originalIndex, 'included', !!checked)}
-                                    />
-                                    </TableCell>
-                                    <TableCell className="font-medium text-muted-foreground">{config.originalHeader}</TableCell>
-                                    <TableCell>
-                                    <Input
-                                        value={config.newHeader}
-                                        onChange={(e) => handleColumnConfigChange(originalIndex, 'newHeader', e.target.value)}
-                                    />
-                                    </TableCell>
-                                </TableRow>
-                            )
-                          })}
-                      </TableBody>
-                      </Table>
-                  </div>
-                </CardContent>
-              </Card>
-              ))}
-            </div>
-          );
-      case 4:
+      case 3:
         return (
             <div className="w-full space-y-6">
                 {finalTables.map(table => (
@@ -500,25 +451,20 @@ export default function ExtractPage() {
           </AnimatePresence>
         </div>
         <div className="flex justify-between w-full max-w-4xl mx-auto">
-          {currentStep > 1 && currentStep < 4 && (
+          {currentStep > 1 && currentStep < 3 && (
             <Button variant="outline" onClick={() => setCurrentStep(s => s - 1)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
           )}
-          {currentStep === 4 && (
+          {currentStep === 3 && (
              <Button variant="outline" onClick={resetWizard}>
                 <FileUp className="mr-2 h-4 w-4" /> Start New Extraction
             </Button>
           )}
           <div />
           {currentStep === 2 && (
-            <Button onClick={handleProceedToConfig} disabled={selectedTableIds.length === 0}>
+            <Button onClick={handleProceedToFinalStep} disabled={selectedTableIds.length === 0}>
               Next <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          )}
-          {currentStep === 3 && (
-             <Button onClick={() => setCurrentStep(4)}>
-              Finalize & View Tables <Check className="ml-2 h-4 w-4" />
             </Button>
           )}
         </div>
@@ -526,3 +472,5 @@ export default function ExtractPage() {
     </div>
   );
 }
+
+    
