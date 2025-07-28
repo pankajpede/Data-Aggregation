@@ -36,12 +36,10 @@ export const mockExtractedData: { tables: ExtractedTable[] } = {
 };
 
 export const mockTransactionTypes = [
-    { name: 'Dividend' },
-    { name: 'Sales' },
-    { name: 'Purchase' },
-    { name: 'Income' },
-    { name: 'Foreign Dividend' },
-    { name: 'Depository Bank (ADR) Fee' },
+    { name: 'Dividend', columns: ['Ex-Date', 'Payable-Date', 'Amount', 'Currency'] },
+    { name: 'Sales', columns: ['Date', 'Security', 'Quantity', 'Price', 'Fees'] },
+    { name: 'Purchase', columns: ['Date', 'Security', 'Quantity', 'Price', 'Fees'] },
+    { name: 'Income', columns: ['Date', 'Source', 'Gross Amount', 'Taxes', 'Net Amount'] },
+    { name: 'Foreign Dividend', columns: ['Ex-Date', 'Payable-Date', 'Amount (Foreign)', 'FX Rate', 'Amount (USD)'] },
+    { name: 'Depository Bank (ADR) Fee', columns: ['Date', 'Description', 'Amount'] },
 ];
-
-    

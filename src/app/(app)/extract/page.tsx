@@ -12,8 +12,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, ChevronsDown } from 'lucide-react';
 import Link from 'next/link';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 
 type ColumnConfig = {
   originalHeader: string;
@@ -255,56 +257,87 @@ export default function ExtractPage() {
         );
       case 2:
         return (
-          <Card className="w-full max-w-4xl">
-            <CardHeader>
-              <CardTitle>Preview & Select Tables</CardTitle>
-              <CardDescription>We found {mockExtractedData.tables.length} tables. Select one or more to proceed.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockExtractedData.tables.map((table: ExtractedTable) => (
-                <div key={table.id} className="rounded-lg border bg-card p-4 has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <Checkbox id={table.id} onCheckedChange={(checked) => handleTableSelection(table.id, !!checked)} checked={selectedTableIds.includes(table.id)} />
-                    <Label htmlFor={table.id} className="text-lg font-semibold cursor-pointer">{table.name}</Label>
-                  </div>
-
-                  {table.name === 'Transactions' ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
-                        {mockTransactionTypes.map(type => (
-                            <div key={type.name} className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`txn-${type.name}`} 
-                                    onCheckedChange={(checked) => handleTransactionTypeSelection(type.name, !!checked)}
-                                    checked={selectedTransactionTypes.includes(type.name)}
-                                />
-                                <Label htmlFor={`txn-${type.name}`} className="font-normal cursor-pointer">{type.name}</Label>
+            <Card className="w-full max-w-4xl">
+              <CardHeader>
+                <CardTitle>Preview & Select Tables</CardTitle>
+                <CardDescription>We found {mockExtractedData.tables.length} tables. Select the data you want to extract.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockExtractedData.tables.map((table: ExtractedTable) => (
+                  <Collapsible key={table.id} className="rounded-lg border bg-card p-4 has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox 
+                        id={table.id} 
+                        onCheckedChange={(checked) => handleTableSelection(table.id, !!checked)} 
+                        checked={selectedTableIds.includes(table.id)}
+                      />
+                      <CollapsibleTrigger className="flex-1">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor={table.id} className="text-lg font-semibold cursor-pointer">{table.name}</Label>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>Expand</span>
+                                <ChevronsRight className="h-4 w-4" />
                             </div>
-                        ))}
-                     </div>
-                  ) : (
-                    <div className="max-h-60 overflow-auto rounded-md border">
-                        <Table>
-                        <TableHeader>
-                            <TableRow>
-                            {table.headers.map((h, i) => <TableHead key={i}>{h}</TableHead>)}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {table.rows.slice(0, 3).map((row, i) => (
-                            <TableRow key={i}>
-                                {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
-                            </TableRow>
-                            ))}
-                        </TableBody>
-                        </Table>
+                        </div>
+                      </CollapsibleTrigger>
                     </div>
-                  )}
-
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        );
+  
+                    <CollapsibleContent>
+                        {table.name === 'Transactions' ? (
+                            <div className="p-4 mt-4 border-t">
+                            {mockTransactionTypes.map(type => (
+                                <Collapsible key={type.name} className="py-2">
+                                <div className="flex items-center space-x-3">
+                                    <Checkbox 
+                                        id={`txn-${type.name}`} 
+                                        onCheckedChange={(checked) => handleTransactionTypeSelection(type.name, !!checked)}
+                                        checked={selectedTransactionTypes.includes(type.name)}
+                                    />
+                                    <CollapsibleTrigger className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor={`txn-${type.name}`} className="font-normal cursor-pointer">{type.name}</Label>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                <span>View Columns</span>
+                                                <ChevronRight className="h-4 w-4" />
+                                            </div>
+                                        </div>
+                                    </CollapsibleTrigger>
+                                </div>
+                                <CollapsibleContent className="pl-8 mt-2 space-y-2">
+                                    {type.columns.map(col => (
+                                    <div key={col} className="flex items-center space-x-2">
+                                        <Checkbox id={`col-${type.name}-${col}`} />
+                                        <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                    </div>
+                                    ))}
+                                </CollapsibleContent>
+                                </Collapsible>
+                            ))}
+                            </div>
+                        ) : (
+                            <div className="max-h-60 overflow-auto rounded-md border mt-4">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    {table.headers.map((h, i) => <TableHead key={i}>{h}</TableHead>)}
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {table.rows.slice(0, 3).map((row, i) => (
+                                    <TableRow key={i}>
+                                    {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                            </div>
+                        )}
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+              </CardContent>
+            </Card>
+          );
         case 3:
           if (!selectedTables) return null;
           return (
@@ -449,5 +482,3 @@ export default function ExtractPage() {
     </div>
   );
 }
-
-    
