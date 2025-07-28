@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { labelColumns } from '@/ai/flows/label-columns';
 import { mockExtractedData, mockTransactionTypes, mockHoldingTypes } from '@/lib/mock-data';
@@ -39,13 +39,16 @@ export default function ExtractPage() {
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTransactionTypes, setSelectedTransactionTypes] = useState<string[]>([]);
   const [selectedHoldingTypes, setSelectedHoldingTypes] = useState<string[]>([]);
+  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>([]);
 
   const { toast } = useToast();
 
   const selectedTables = useMemo(() => {
-    const tables = mockExtractedData.tables.filter(t => selectedTableIds.includes(t.id)) || [];
-    
-    const initialConfig = tables.flatMap(table => (
+    return mockExtractedData.tables.filter(t => selectedTableIds.includes(t.id)) || [];
+  }, [selectedTableIds]);
+
+  useEffect(() => {
+    const initialConfig = selectedTables.flatMap(table => (
         table.headers.map(header => ({
             originalHeader: header,
             newHeader: header,
@@ -54,11 +57,7 @@ export default function ExtractPage() {
         }))
     ));
     setColumnConfig(initialConfig);
-
-    return tables;
-  }, [selectedTableIds]);
-
-  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>([]);
+  }, [selectedTables]);
 
   const finalTables = useMemo(() => {
     return selectedTables.map(table => {
@@ -472,5 +471,3 @@ export default function ExtractPage() {
     </div>
   );
 }
-
-    
