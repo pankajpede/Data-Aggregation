@@ -671,15 +671,15 @@ export default function ExtractPage() {
                       return(
                       <Card key={table.id}>
                         <CardHeader>
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex-1">
-                                    <CardTitle>{table.name}</CardTitle>
-                                    <CardDescription>
-                                        Here is your finalized table. You can now export it in your desired format.
-                                    </CardDescription>
-                                </div>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <CardTitle>{table.name}</CardTitle>
+                                <CardDescription>
+                                    Here is your finalized table. You can now export it in your desired format.
+                                </CardDescription>
                             </div>
-                            <div className="mt-4 flex items-center justify-between">
+                        </CardHeader>
+                        <CardContent>
+                           <div className="flex items-center justify-between py-4">
                                 <Input 
                                     placeholder="Search table..."
                                     value={searchQueries[table.id] || ''}
@@ -706,8 +706,6 @@ export default function ExtractPage() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </CardHeader>
-                        <CardContent>
                           <div className="overflow-x-auto rounded-md border">
                             <Table>
                               <TableHeader>
