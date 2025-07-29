@@ -33,8 +33,9 @@ type ColumnConfig = {
 
 const STEPS = [
   { id: 1, name: 'Upload PDF' },
-  { id: 2, name: 'Map & Configure' },
-  { id: 3, name: 'Analyze & Export' },
+  { id: 2, name: 'Data as Reported' },
+  { id: 3, name: 'Map & Configure' },
+  { id: 4, name: 'Analyze & Export' },
 ];
 
 type SortConfig = {
@@ -197,9 +198,13 @@ export default function ExtractPage() {
       toast({ variant: 'destructive', title: 'No tables selected', description: 'Please select at least one table to continue.' });
       return;
     }
-    setCurrentStep(3);
+    setCurrentStep(4);
   };
   
+  const handleProceedToMap = () => {
+      setCurrentStep(3);
+  };
+
   const handleColumnConfigChange = (index: number, field: keyof ColumnConfig, value: string | boolean) => {
     const newConfig = [...columnConfig];
     if (newConfig[index]) {
@@ -433,7 +438,83 @@ export default function ExtractPage() {
             </CardContent>
           </Card>
         );
-      case 2:
+    case 2:
+        const dividendTable = mockTransactionTypes.find(t => t.name === 'Dividend');
+        const holdingTable = mockHoldingTypes.find(t => t.name === 'Holdings');
+
+        return (
+          <div className="w-full max-w-6xl">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Data as Reported</CardTitle>
+                    <CardDescription>Review the raw data extracted from your document.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="transaction">
+                    <TabsList>
+                        <TabsTrigger value="transaction">Transactions</TabsTrigger>
+                        <TabsTrigger value="holding">Holdings</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="transaction">
+                        <Card>
+                        <CardHeader>
+                            <CardTitle>Dividend</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {dividendTable && (
+                            <div className="overflow-x-auto rounded-md border">
+                                <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                    {dividendTable.columns.map(h => <TableHead key={h}>{h}</TableHead>)}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {dividendTable.rows.map((row, i) => (
+                                    <TableRow key={i}>
+                                        {dividendTable.columns.map(col => <TableCell key={col}>{row[col]}</TableCell>)}
+                                    </TableRow>
+                                    ))}
+                                </TableBody>
+                                </Table>
+                            </div>
+                            )}
+                        </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="holding">
+                        <Card>
+                        <CardHeader>
+                            <CardTitle>Holdings</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {holdingTable && (
+                             <div className="overflow-x-auto rounded-md border">
+                                <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                    {holdingTable.columns.map(h => <TableHead key={h}>{h}</TableHead>)}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {holdingTable.rows.map((row, i) => (
+                                    <TableRow key={i}>
+                                        {holdingTable.columns.map(col => <TableCell key={col}>{row[col]}</TableCell>)}
+                                    </TableRow>
+                                    ))}
+                                </TableBody>
+                                </Table>
+                             </div>
+                            )}
+                        </CardContent>
+                        </Card>
+                    </TabsContent>
+                    </Tabs>
+                </CardContent>
+            </Card>
+            </div>
+        );
+      case 3:
         return (
             <Card className="w-full max-w-4xl">
               <CardHeader>
@@ -609,7 +690,7 @@ export default function ExtractPage() {
               </CardContent>
             </Card>
           );
-      case 3:
+      case 4:
         const groupedTables = finalTables.reduce((acc, table) => {
             if (!acc[table.parent]) {
                 acc[table.parent] = [];
@@ -842,12 +923,17 @@ export default function ExtractPage() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
           ) : <div />}
-          {currentStep === 3 && (
+          {currentStep === 4 && (
              <Button variant="outline" onClick={resetWizard}>
                 <FileUp className="mr-2 h-4 w-4" /> Start New Extraction
             </Button>
           )}
           {currentStep === 2 && (
+            <Button onClick={handleProceedToMap}>
+              Next <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+          {currentStep === 3 && (
             <Button onClick={handleProceedToFinalStep} disabled={selectedTableIds.length === 0}>
               Next <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -879,5 +965,3 @@ export default function ExtractPage() {
     </div>
   );
 }
-
-    

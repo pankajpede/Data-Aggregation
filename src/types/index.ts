@@ -2,7 +2,7 @@ export type ExtractedTable = {
   id: string;
   name: string;
   headers: string[];
-  rows: string[][];
+  rows: (string[] | Record<string, string>)[];
 };
 
 export type Session = {
