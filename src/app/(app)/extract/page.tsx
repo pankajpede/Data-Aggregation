@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 type ColumnConfig = {
@@ -534,35 +535,58 @@ export default function ExtractPage() {
           );
       case 3:
         return (
-            <div className="w-full space-y-6">
+            <div className="w-full max-w-4xl">
+               <Tabs defaultValue={finalTables.length > 0 ? finalTables[0].id : ''}>
+                <TabsList>
+                  {finalTables.map(table => (
+                    <TabsTrigger key={table.id} value={table.id}>
+                      {table.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
                 {finalTables.map(table => (
-                <Card key={table.id} className="w-full">
-                    <CardHeader>
+                  <TabsContent key={table.id} value={table.id}>
+                    <Card>
+                      <CardHeader>
                         <CardTitle>{table.name}</CardTitle>
-                        <CardDescription>Here is your finalized table. You can now export it in your desired format.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                        <CardDescription>
+                          Here is your finalized table. You can now export it in your desired format.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
                         <div className="overflow-x-auto rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        {table.headers.map(h => <TableHead key={h}>{h}</TableHead>)}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {table.rows.map((row, i) => (
-                                    <TableRow key={i}>{row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}</TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {table.headers.map(h => (
+                                  <TableHead key={h}>{h}</TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {table.rows.map((row, i) => (
+                                <TableRow key={i}>
+                                  {row.map((cell, j) => (
+                                    <TableCell key={j}>{cell}</TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
                         </div>
                         <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-end">
-                            <Button variant="outline" onClick={() => exportData('json', table)}><Download className="mr-2 h-4 w-4" /> Export as JSON</Button>
-                            <Button onClick={() => exportData('csv', table)}><Download className="mr-2 h-4 w-4" /> Export as CSV</Button>
+                          <Button variant="outline" onClick={() => exportData('json', table)}>
+                            <Download className="mr-2 h-4 w-4" /> Export as JSON
+                          </Button>
+                          <Button onClick={() => exportData('csv', table)}>
+                            <Download className="mr-2 h-4 w-4" /> Export as CSV
+                          </Button>
                         </div>
-                    </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
                 ))}
+              </Tabs>
             </div>
         );
       default:
