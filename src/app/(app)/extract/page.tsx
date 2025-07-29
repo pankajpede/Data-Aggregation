@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical, ChevronLeft, ChevronsLeft, ChevronsUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -36,8 +36,6 @@ const STEPS = [
   { id: 3, name: 'Analyze & Export' },
 ];
 
-const ROWS_PER_PAGE = 5;
-
 type SortConfig = {
     key: string;
     direction: 'ascending' | 'descending';
@@ -59,6 +57,7 @@ export default function ExtractPage() {
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
   const [sortConfigs, setSortConfigs] = useState<Record<string, SortConfig | null>>({});
   const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
+  const [rowsPerPage, setRowsPerPage] = useState<Record<string, number>>({});
 
 
   const { toast } = useToast();
@@ -351,6 +350,7 @@ export default function ExtractPage() {
   };
 
   const getPaginatedAndSortedData = useCallback((table: typeof finalTables[0]) => {
+    const rpp = rowsPerPage[table.id] || 5;
     const query = searchQueries[table.id] || '';
     const sortConfig = sortConfigs[table.id];
     const page = currentPage[table.id] || 1;
@@ -378,11 +378,11 @@ export default function ExtractPage() {
       }
     }
     
-    const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
-    const paginatedRows = filteredRows.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+    const totalPages = Math.ceil(filteredRows.length / rpp);
+    const paginatedRows = filteredRows.slice((page - 1) * rpp, page * rpp);
     
-    return { paginatedRows, totalPages };
-  }, [searchQueries, sortConfigs, currentPage]);
+    return { paginatedRows, totalPages, totalRows: filteredRows.length };
+  }, [searchQueries, sortConfigs, currentPage, rowsPerPage]);
 
 
   const StepIndicator = () => (
@@ -639,8 +639,34 @@ export default function ExtractPage() {
                 {Object.entries(groupedTables).map(([parentName, tables]) => (
                   <TabsContent key={parentName} value={parentName} className="space-y-4">
                     {tables.map(table => {
-                      const { paginatedRows, totalPages } = getPaginatedAndSortedData(table);
+                      const { paginatedRows, totalPages, totalRows } = getPaginatedAndSortedData(table);
                       const page = currentPage[table.id] || 1;
+                      const rpp = rowsPerPage[table.id] || 5;
+
+                      const renderPageNumbers = () => {
+                        const pageNumbers = [];
+                        const maxPagesToShow = 5;
+                        let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+                        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+                        if(endPage - startPage + 1 < maxPagesToShow) {
+                          startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                        }
+
+                        for (let i = startPage; i <= endPage; i++) {
+                          pageNumbers.push(
+                            <Button
+                              key={i}
+                              variant={i === page ? 'default' : 'ghost'}
+                              size="icon"
+                              onClick={() => setCurrentPage(prev => ({...prev, [table.id]: i}))}
+                              className="h-8 w-8"
+                            >
+                              {i}
+                            </Button>
+                          );
+                        }
+                        return pageNumbers;
+                      };
 
                       return(
                       <Card key={table.id}>
@@ -707,24 +733,72 @@ export default function ExtractPage() {
                               </TableBody>
                             </Table>
                           </div>
-                          <div className="flex items-center justify-end space-x-2 py-4">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page - 1}))}
-                                disabled={page <= 1}
-                              >
-                                Previous
-                              </Button>
-                              <span className="text-sm">Page {page} of {totalPages}</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
-                                disabled={page >= totalPages}
-                              >
-                                Next
-                              </Button>
+                            <div className="flex items-center justify-between space-x-2 py-4 text-sm text-muted-foreground">
+                                <div>
+                                    <span className="font-medium">{((page - 1) * rpp) + 1}-{Math.min(page * rpp, totalRows)}</span> of <span className="font-medium">{totalRows}</span> rows
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span>Rows per page</span>
+                                  <Select
+                                      value={String(rpp)}
+                                      onValueChange={(value) => {
+                                          setRowsPerPage(prev => ({...prev, [table.id]: Number(value)}));
+                                          setCurrentPage(prev => ({...prev, [table.id]: 1}));
+                                      }}
+                                  >
+                                      <SelectTrigger className="h-8 w-16">
+                                          <SelectValue placeholder={rpp} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                          {[5, 10, 20, 50].map(val => (
+                                              <SelectItem key={val} value={String(val)}>{val}</SelectItem>
+                                          ))}
+                                      </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => setCurrentPage(prev => ({...prev, [table.id]: 1}))}
+                                      disabled={page <= 1}
+                                      className="h-8 w-8"
+                                    >
+                                      <ChevronsLeft className="h-4 w-4" />
+                                      <span className="sr-only">First page</span>
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page - 1}))}
+                                      disabled={page <= 1}
+                                      className="h-8 w-8"
+                                    >
+                                      <ChevronLeft className="h-4 w-4" />
+                                      <span className="sr-only">Previous page</span>
+                                    </Button>
+                                    {renderPageNumbers()}
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
+                                      disabled={page >= totalPages}
+                                      className="h-8 w-8"
+                                    >
+                                      <ChevronRight className="h-4 w-4" />
+                                      <span className="sr-only">Next page</span>
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => setCurrentPage(prev => ({...prev, [table.id]: totalPages}))}
+                                      disabled={page >= totalPages}
+                                      className="h-8 w-8"
+                                    >
+                                      <ChevronsRight className="h-4 w-4" />
+                                      <span className="sr-only">Last page</span>
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                       </Card>
@@ -804,3 +878,5 @@ export default function ExtractPage() {
     </div>
   );
 }
+
+    
