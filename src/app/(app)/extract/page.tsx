@@ -386,30 +386,23 @@ export default function ExtractPage() {
 
 
   const StepIndicator = () => (
-    <nav aria-label="Progress">
-      <ol role="list" className="space-y-4 md:flex md:space-x-8 md:space-y-0">
-        {STEPS.map((step, index) => (
-          <li key={step.name} className="md:flex-1">
-            {currentStep > step.id ? (
-              <div className="group flex w-full flex-col border-l-4 border-primary py-2 pl-4 transition-colors md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
-                <span className="text-sm font-medium text-primary transition-colors">{step.name}</span>
-              </div>
-            ) : currentStep === step.id ? (
-              <div
-                className="flex w-full flex-col border-l-4 border-primary py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4"
-                aria-current="step"
-              >
-                <span className="text-sm font-medium text-primary">{step.name}</span>
-              </div>
-            ) : (
-              <div className="group flex w-full flex-col border-l-4 border-border py-2 pl-4 transition-colors md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
-                <span className="text-sm font-medium text-muted-foreground transition-colors">{step.name}</span>
-              </div>
-            )}
-          </li>
+    <div className="flex justify-center">
+      <div className="p-1 rounded-lg bg-muted flex items-center gap-2">
+        {STEPS.map((step) => (
+          <button
+            key={step.id}
+            onClick={() => currentStep > step.id && setCurrentStep(step.id)}
+            disabled={currentStep < step.id}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors
+              ${currentStep === step.id ? 'bg-background text-foreground shadow-sm' : ''}
+              ${currentStep > step.id ? 'text-muted-foreground hover:bg-background/50' : 'text-muted-foreground/50 cursor-not-allowed'}
+            `}
+          >
+            {step.name}
+          </button>
         ))}
-      </ol>
-    </nav>
+      </div>
+    </div>
   );
 
   const renderContent = () => {
@@ -876,5 +869,3 @@ export default function ExtractPage() {
     </div>
   );
 }
-
-    
