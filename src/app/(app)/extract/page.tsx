@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { labelColumns } from '@/ai/flows/label-columns';
 import { mockExtractedData, mockTransactionTypes, mockHoldingTypes } from '@/lib/mock-data';
@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -35,6 +35,13 @@ const STEPS = [
   { id: 3, name: 'Analyze & Export' },
 ];
 
+const ROWS_PER_PAGE = 5;
+
+type SortConfig = {
+    key: string;
+    direction: 'ascending' | 'descending';
+};
+
 export default function ExtractPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +54,10 @@ export default function ExtractPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
   const [editingColumnIndex, setEditingColumnIndex] = useState<number | null>(null);
+  
+  const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
+  const [sortConfigs, setSortConfigs] = useState<Record<string, SortConfig | null>>({});
+  const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
 
 
   const { toast } = useToast();
@@ -322,6 +333,57 @@ export default function ExtractPage() {
     });
   };
 
+  const handleSearchChange = (tableId: string, query: string) => {
+    setSearchQueries(prev => ({...prev, [tableId]: query}));
+    setCurrentPage(prev => ({ ...prev, [tableId]: 1 }));
+  };
+
+  const handleSort = (tableId: string, key: string) => {
+    setSortConfigs(prev => {
+        const currentSort = prev[tableId];
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if(currentSort && currentSort.key === key && currentSort.direction === 'ascending') {
+            direction = 'descending';
+        }
+        return { ...prev, [tableId]: { key, direction } };
+    });
+  };
+
+  const getPaginatedAndSortedData = useCallback((table: typeof finalTables[0]) => {
+    const query = searchQueries[table.id] || '';
+    const sortConfig = sortConfigs[table.id];
+    const page = currentPage[table.id] || 1;
+
+    let filteredRows = table.rows;
+
+    if (query) {
+      filteredRows = table.rows.filter(row =>
+        row.some(cell => cell.toLowerCase().includes(query.toLowerCase()))
+      );
+    }
+
+    if (sortConfig) {
+      const headerIndex = table.headers.indexOf(sortConfig.key);
+      if(headerIndex > -1) {
+        filteredRows.sort((a, b) => {
+          if (a[headerIndex] < b[headerIndex]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+          }
+          if (a[headerIndex] > b[headerIndex]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+    }
+    
+    const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+    const paginatedRows = filteredRows.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+    
+    return { paginatedRows, totalPages };
+  }, [searchQueries, sortConfigs, currentPage]);
+
+
   const StepIndicator = () => (
     <nav aria-label="Progress">
       <ol role="list" className="space-y-4 md:flex md:space-x-8 md:space-y-0">
@@ -380,7 +442,7 @@ export default function ExtractPage() {
         return (
             <Card className="w-full max-w-4xl">
               <CardHeader>
-                <CardTitle>Preview & Select Tables</CardTitle>
+                <CardTitle>Map & Configure</CardTitle>
                 <CardDescription>We found {mockExtractedData.tables.length} tables. Select the data you want to extract and configure the columns.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -564,7 +626,7 @@ export default function ExtractPage() {
         const tabList = Object.keys(groupedTables);
 
         return (
-            <div className="w-full max-w-4xl">
+            <div className="w-full max-w-6xl">
                <Tabs defaultValue={tabList.length > 0 ? tabList[0] : ''}>
                 <TabsList>
                   {tabList.map(parentName => (
@@ -575,13 +637,37 @@ export default function ExtractPage() {
                 </TabsList>
                 {Object.entries(groupedTables).map(([parentName, tables]) => (
                   <TabsContent key={parentName} value={parentName} className="space-y-4">
-                    {tables.map(table => (
+                    {tables.map(table => {
+                      const { paginatedRows, totalPages } = getPaginatedAndSortedData(table);
+                      const page = currentPage[table.id] || 1;
+
+                      return(
                       <Card key={table.id}>
                         <CardHeader>
-                          <CardTitle>{table.name}</CardTitle>
-                          <CardDescription>
-                            Here is your finalized table. You can now export it in your desired format.
-                          </CardDescription>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div className="flex-1">
+                                    <CardTitle>{table.name}</CardTitle>
+                                    <CardDescription>
+                                        Here is your finalized table. You can now export it in your desired format.
+                                    </CardDescription>
+                                </div>
+                                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                    <Button variant="outline" onClick={() => exportData('json', table)}>
+                                    <Download className="mr-2 h-4 w-4" /> Export as JSON
+                                    </Button>
+                                    <Button onClick={() => exportData('csv', table)}>
+                                    <Download className="mr-2 h-4 w-4" /> Export as CSV
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <Input 
+                                    placeholder="Search table..."
+                                    value={searchQueries[table.id] || ''}
+                                    onChange={(e) => handleSearchChange(table.id, e.target.value)}
+                                    className="max-w-sm"
+                                />
+                            </div>
                         </CardHeader>
                         <CardContent>
                           <div className="overflow-x-auto rounded-md border">
@@ -589,12 +675,17 @@ export default function ExtractPage() {
                               <TableHeader>
                                 <TableRow>
                                   {table.headers.map(h => (
-                                    <TableHead key={h}>{h}</TableHead>
+                                    <TableHead key={h}>
+                                      <Button variant="ghost" onClick={() => handleSort(table.id, h)}>
+                                        {h}
+                                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                                      </Button>
+                                    </TableHead>
                                   ))}
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {table.rows.map((row, i) => (
+                                {paginatedRows.map((row, i) => (
                                   <TableRow key={i}>
                                     {row.map((cell, j) => (
                                       <TableCell key={j}>{cell}</TableCell>
@@ -604,17 +695,28 @@ export default function ExtractPage() {
                               </TableBody>
                             </Table>
                           </div>
-                          <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-end">
-                            <Button variant="outline" onClick={() => exportData('json', table)}>
-                              <Download className="mr-2 h-4 w-4" /> Export as JSON
-                            </Button>
-                            <Button onClick={() => exportData('csv', table)}>
-                              <Download className="mr-2 h-4 w-4" /> Export as CSV
-                            </Button>
-                          </div>
+                          <div className="flex items-center justify-end space-x-2 py-4">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page - 1}))}
+                                disabled={page <= 1}
+                              >
+                                Previous
+                              </Button>
+                              <span className="text-sm">Page {page} of {totalPages}</span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
+                                disabled={page >= totalPages}
+                              >
+                                Next
+                              </Button>
+                            </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )})}
                   </TabsContent>
                 ))}
               </Tabs>
@@ -627,7 +729,7 @@ export default function ExtractPage() {
 
   return (
     <div className="flex flex-col gap-8 w-full items-center">
-      <div className="w-full max-w-4xl space-y-8">
+      <div className="w-full max-w-6xl space-y-8">
         <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
@@ -647,7 +749,7 @@ export default function ExtractPage() {
             </motion.div>
           </AnimatePresence>
         </div>
-        <div className="flex justify-between w-full max-w-4xl mx-auto">
+        <div className="flex justify-between w-full max-w-6xl mx-auto">
           {currentStep > 1 ? (
             <Button variant="outline" onClick={() => setCurrentStep(s => s - 1)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous
