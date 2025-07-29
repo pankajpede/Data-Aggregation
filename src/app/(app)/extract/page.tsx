@@ -75,7 +75,7 @@ export default function ExtractPage() {
                     newHeader: header,
                     included: true,
                     tableId: table.id,
-                    options: [header, `Renamed ${header}`, `Custom ${header}`]
+                    options: [header]
                 });
             }
         });
@@ -84,63 +84,89 @@ export default function ExtractPage() {
   }, []);
 
   const finalTables = useMemo(() => {
-    return selectedTables.map(table => {
+    const tables: (ExtractedTable & { parent: string })[] = [];
+    selectedTables.forEach(table => {
       const tableConfig = columnConfig.filter(c => c.tableId === table.id);
-      const includedHeaders = new Set<string>();
 
       if (table.name === 'Transactions') {
         selectedTransactionTypes.forEach(txnType => {
-          const typeInfo = mockTransactionTypes.find(t => t.name === txnType);
-          if (typeInfo) {
-            typeInfo.columns.forEach(col => {
-              const config = tableConfig.find(c => c.originalHeader === col);
-              if (config?.included) {
-                includedHeaders.add(col);
-              }
+          const typeInfo = mockTransactionTypes.find(t => t.name === txnType)!;
+          const includedHeaders = typeInfo.columns.filter(col => {
+            const config = tableConfig.find(c => c.originalHeader === col);
+            return config?.included;
+          });
+
+          if (includedHeaders.length > 0) {
+            const finalHeaders = includedHeaders.map(originalHeader => {
+              return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
+            });
+
+            // For simplicity, we'll reuse the same mock rows for each subtype
+            // In a real scenario, you'd filter rows based on the transaction type
+            const finalRows = table.rows.map(row =>
+              includedHeaders.map(header => {
+                const originalIndex = table.headers.indexOf(header);
+                return row[originalIndex] ?? '';
+              })
+            );
+            
+            tables.push({
+              id: `${table.id}-${txnType}`,
+              name: txnType,
+              parent: table.name,
+              headers: finalHeaders,
+              rows: finalRows
             });
           }
         });
       } else if (table.name === 'Holdings') {
-        selectedHoldingTypes.forEach(holdingType => {
-          const typeInfo = mockHoldingTypes.find(t => t.name === holdingType);
-          if (typeInfo) {
-            typeInfo.columns.forEach(col => {
-              const config = tableConfig.find(c => c.originalHeader === col);
-              if (config?.included) {
-                includedHeaders.add(col);
-              }
+         selectedHoldingTypes.forEach(holdingType => {
+          const typeInfo = mockHoldingTypes.find(t => t.name === holdingType)!;
+          const includedHeaders = typeInfo.columns.filter(col => {
+            const config = tableConfig.find(c => c.originalHeader === col);
+            return config?.included;
+          });
+
+           if (includedHeaders.length > 0) {
+            const finalHeaders = includedHeaders.map(originalHeader => {
+              return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
+            });
+            const finalRows = table.rows.map(row =>
+              includedHeaders.map(header => {
+                const originalIndex = table.headers.indexOf(header);
+                return row[originalIndex] ?? '';
+              })
+            );
+             tables.push({
+              id: `${table.id}-${holdingType}`,
+              name: holdingType,
+              parent: table.name,
+              headers: finalHeaders,
+              rows: finalRows
             });
           }
         });
       } else {
-        table.headers.forEach(header => {
-           const config = tableConfig.find(c => c.originalHeader === header);
-           if(config?.included){
-             includedHeaders.add(header);
-           }
+        const includedHeaders = table.headers.filter(header => {
+          const config = tableConfig.find(c => c.originalHeader === header);
+          return config?.included;
         });
-      }
-      
-      const finalHeaders = Array.from(includedHeaders).map(originalHeader => {
-        return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
-      });
-      
-      const originalHeaderOrder = Array.from(includedHeaders);
 
-      const finalRows = table.rows.map(row => 
-        originalHeaderOrder.map(header => {
-          const originalIndex = table.headers.indexOf(header);
-          return row[originalIndex]
-        })
-      );
-
-      return {
-        id: table.id,
-        name: table.name,
-        headers: finalHeaders,
-        rows: finalRows
+        if(includedHeaders.length > 0) {
+           const finalHeaders = includedHeaders.map(originalHeader => {
+              return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
+            });
+           const finalRows = table.rows.map(row =>
+              includedHeaders.map(header => {
+                const originalIndex = table.headers.indexOf(header);
+                return row[originalIndex] ?? '';
+              })
+            );
+          tables.push({ ...table, parent: 'General', headers: finalHeaders, rows: finalRows });
+        }
       }
     });
+    return tables;
   }, [selectedTables, columnConfig, selectedTransactionTypes, selectedHoldingTypes]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -534,56 +560,68 @@ export default function ExtractPage() {
             </Card>
           );
       case 3:
+        const groupedTables = finalTables.reduce((acc, table) => {
+            if (!acc[table.parent]) {
+                acc[table.parent] = [];
+            }
+            acc[table.parent].push(table);
+            return acc;
+        }, {} as Record<string, typeof finalTables>);
+        
+        const tabList = Object.keys(groupedTables);
+
         return (
             <div className="w-full max-w-4xl">
-               <Tabs defaultValue={finalTables.length > 0 ? finalTables[0].id : ''}>
+               <Tabs defaultValue={tabList.length > 0 ? tabList[0] : ''}>
                 <TabsList>
-                  {finalTables.map(table => (
-                    <TabsTrigger key={table.id} value={table.id}>
-                      {table.name}
+                  {tabList.map(parentName => (
+                    <TabsTrigger key={parentName} value={parentName}>
+                      {parentName}
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                {finalTables.map(table => (
-                  <TabsContent key={table.id} value={table.id}>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>{table.name}</CardTitle>
-                        <CardDescription>
-                          Here is your finalized table. You can now export it in your desired format.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="overflow-x-auto rounded-md border">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                {table.headers.map(h => (
-                                  <TableHead key={h}>{h}</TableHead>
-                                ))}
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {table.rows.map((row, i) => (
-                                <TableRow key={i}>
-                                  {row.map((cell, j) => (
-                                    <TableCell key={j}>{cell}</TableCell>
+                {Object.entries(groupedTables).map(([parentName, tables]) => (
+                  <TabsContent key={parentName} value={parentName} className="space-y-4">
+                    {tables.map(table => (
+                      <Card key={table.id}>
+                        <CardHeader>
+                          <CardTitle>{table.name}</CardTitle>
+                          <CardDescription>
+                            Here is your finalized table. You can now export it in your desired format.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="overflow-x-auto rounded-md border">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  {table.headers.map(h => (
+                                    <TableHead key={h}>{h}</TableHead>
                                   ))}
                                 </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                        <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-end">
-                          <Button variant="outline" onClick={() => exportData('json', table)}>
-                            <Download className="mr-2 h-4 w-4" /> Export as JSON
-                          </Button>
-                          <Button onClick={() => exportData('csv', table)}>
-                            <Download className="mr-2 h-4 w-4" /> Export as CSV
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                              </TableHeader>
+                              <TableBody>
+                                {table.rows.map((row, i) => (
+                                  <TableRow key={i}>
+                                    {row.map((cell, j) => (
+                                      <TableCell key={j}>{cell}</TableCell>
+                                    ))}
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                          <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-end">
+                            <Button variant="outline" onClick={() => exportData('json', table)}>
+                              <Download className="mr-2 h-4 w-4" /> Export as JSON
+                            </Button>
+                            <Button onClick={() => exportData('csv', table)}>
+                              <Download className="mr-2 h-4 w-4" /> Export as CSV
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </TabsContent>
                 ))}
               </Tabs>
