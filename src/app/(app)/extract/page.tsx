@@ -386,7 +386,7 @@ export default function ExtractPage() {
 
 
   const StepIndicator = () => (
-    <div className="flex justify-center">
+    <div className="flex">
       <div className="p-1 rounded-lg bg-muted flex items-center gap-2">
         {STEPS.map((step) => (
           <button
@@ -807,11 +807,15 @@ export default function ExtractPage() {
   return (
     <div className="flex flex-col gap-8 w-full items-center">
       <div className="w-full max-w-6xl space-y-8">
-        <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-        </Link>
-        <StepIndicator />
+        <div className="flex justify-between items-center">
+            <StepIndicator />
+            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Button variant="ghost" size="icon">
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Back to Dashboard</span>
+                </Button>
+            </Link>
+        </div>
         <div className="mt-8 flex justify-center">
            <AnimatePresence mode="wait">
             <motion.div
