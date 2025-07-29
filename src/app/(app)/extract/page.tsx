@@ -55,15 +55,30 @@ export default function ExtractPage() {
   }, [selectedTableIds]);
 
   useEffect(() => {
-    const initialConfig = mockExtractedData.tables.flatMap(table => (
-      table.headers.map(header => ({
-        originalHeader: header,
-        newHeader: header,
-        included: true,
-        tableId: table.id,
-        options: [header, `Renamed ${header}`, `Custom ${header}`]
-      }))
-    ));
+    const initialConfig: ColumnConfig[] = [];
+    mockExtractedData.tables.forEach(table => {
+        const allHeaders = new Set<string>();
+        
+        if (table.name === 'Transactions') {
+            mockTransactionTypes.forEach(type => type.columns.forEach(col => allHeaders.add(col)));
+        } else if (table.name === 'Holdings') {
+            mockHoldingTypes.forEach(type => type.columns.forEach(col => allHeaders.add(col)));
+        } else {
+            table.headers.forEach(header => allHeaders.add(header));
+        }
+
+        allHeaders.forEach(header => {
+            if (!initialConfig.some(c => c.tableId === table.id && c.originalHeader === header)) {
+                initialConfig.push({
+                    originalHeader: header,
+                    newHeader: header,
+                    included: true,
+                    tableId: table.id,
+                    options: [header, `Renamed ${header}`, `Custom ${header}`]
+                });
+            }
+        });
+    });
     setColumnConfig(initialConfig);
   }, []);
 
@@ -117,8 +132,10 @@ export default function ExtractPage() {
   
   const handleColumnConfigChange = (index: number, field: keyof ColumnConfig, value: string | boolean) => {
     const newConfig = [...columnConfig];
-    (newConfig[index] as any)[field] = value;
-    setColumnConfig(newConfig);
+    if (newConfig[index]) {
+        (newConfig[index] as any)[field] = value;
+        setColumnConfig(newConfig);
+    }
   };
   
   const handleColumnRename = (index: number, value: string) => {
@@ -359,7 +376,7 @@ export default function ExtractPage() {
                                             <div className='flex items-center gap-2'>
                                                 <Checkbox 
                                                     id={`col-${type.name}-${col}`} 
-                                                    checked={config?.included}
+                                                    checked={!!config?.included}
                                                     onCheckedChange={(checked) => handleColumnConfigChange(configIndex, 'included', !!checked)}
                                                 />
                                                 <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
@@ -417,7 +434,7 @@ export default function ExtractPage() {
                                         <div className='flex items-center gap-2'>
                                           <Checkbox 
                                             id={`col-holding-${type.name}-${col}`} 
-                                            checked={config?.included}
+                                            checked={!!config?.included}
                                             onCheckedChange={(checked) => handleColumnConfigChange(configIndex, 'included', !!checked)}
                                           />
                                           <Label htmlFor={`col-holding-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
@@ -573,5 +590,7 @@ export default function ExtractPage() {
     </div>
   );
 }
+
+    
 
     
