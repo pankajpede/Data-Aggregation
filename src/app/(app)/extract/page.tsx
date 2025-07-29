@@ -13,9 +13,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 type ColumnConfig = {
@@ -23,6 +25,7 @@ type ColumnConfig = {
   newHeader: string;
   included: boolean;
   tableId: string;
+  options: string[];
 };
 
 const STEPS = [
@@ -40,6 +43,10 @@ export default function ExtractPage() {
   const [selectedTransactionTypes, setSelectedTransactionTypes] = useState<string[]>([]);
   const [selectedHoldingTypes, setSelectedHoldingTypes] = useState<string[]>([]);
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newColumnName, setNewColumnName] = useState('');
+  const [editingColumnIndex, setEditingColumnIndex] = useState<number | null>(null);
+
 
   const { toast } = useToast();
 
@@ -48,16 +55,17 @@ export default function ExtractPage() {
   }, [selectedTableIds]);
 
   useEffect(() => {
-    const initialConfig = selectedTables.flatMap(table => (
-        table.headers.map(header => ({
-            originalHeader: header,
-            newHeader: header,
-            included: true,
-            tableId: table.id
-        }))
+    const initialConfig = mockExtractedData.tables.flatMap(table => (
+      table.headers.map(header => ({
+        originalHeader: header,
+        newHeader: header,
+        included: true,
+        tableId: table.id,
+        options: [header, `Renamed ${header}`, `Custom ${header}`]
+      }))
     ));
     setColumnConfig(initialConfig);
-  }, [selectedTables]);
+  }, []);
 
   const finalTables = useMemo(() => {
     return selectedTables.map(table => {
@@ -65,7 +73,7 @@ export default function ExtractPage() {
       const finalHeaders = tableConfig.filter(c => c.included).map(c => c.newHeader);
       
       const originalHeaderIndices = tableConfig
-        .map((c, i) => (c.included ? table.headers.indexOf(c.originalHeader) : -1))
+        .map((c, i) => (c.included ? mockExtractedData.tables.find(t=>t.id === c.tableId)!.headers.indexOf(c.originalHeader) : -1))
         .filter(i => i !== -1);
 
       const finalRows = table.rows.map(row => 
@@ -112,6 +120,30 @@ export default function ExtractPage() {
     (newConfig[index] as any)[field] = value;
     setColumnConfig(newConfig);
   };
+  
+  const handleColumnRename = (index: number, value: string) => {
+    if (value === 'add_new') {
+        setEditingColumnIndex(index);
+        setIsModalOpen(true);
+    } else {
+        handleColumnConfigChange(index, 'newHeader', value);
+    }
+  };
+
+  const handleAddNewColumnName = () => {
+      if (editingColumnIndex === null || !newColumnName) return;
+      const newConfig = [...columnConfig];
+      const currentOptions = newConfig[editingColumnIndex].options;
+      if(!currentOptions.includes(newColumnName)) {
+        newConfig[editingColumnIndex].options = [...currentOptions, newColumnName];
+      }
+      newConfig[editingColumnIndex].newHeader = newColumnName;
+      setColumnConfig(newConfig);
+      toast({ title: "Success", description: "New column name added successfully." });
+      setIsModalOpen(false);
+      setNewColumnName('');
+      setEditingColumnIndex(null);
+  }
 
   const handleAiLabel = async (table: ExtractedTable) => {
     setIsAiLoading(true);
@@ -318,15 +350,39 @@ export default function ExtractPage() {
                                     </CollapsibleTrigger>
                                 </div>
                                 <CollapsibleContent className="pl-8 mt-2 space-y-2">
-                                    {type.columns.map(col => (
-                                    <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
-                                        <div className='flex items-center gap-2'>
-                                            <Checkbox id={`col-${type.name}-${col}`} defaultChecked/>
-                                            <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                    {type.columns.map((col, colIndex) => {
+                                        const configIndex = columnConfig.findIndex(c => c.tableId === table.id && c.originalHeader === col);
+                                        const config = configIndex !== -1 ? columnConfig[configIndex] : null;
+
+                                        return (
+                                        <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox 
+                                                    id={`col-${type.name}-${col}`} 
+                                                    checked={config?.included}
+                                                    onCheckedChange={(checked) => handleColumnConfigChange(configIndex, 'included', !!checked)}
+                                                />
+                                                <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                            </div>
+                                            {config && (
+                                                <Select value={config.newHeader} onValueChange={(value) => handleColumnRename(configIndex, value)}>
+                                                    <SelectTrigger className="h-8">
+                                                        <SelectValue placeholder="Select a name" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {config.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                                        <SelectItem value="add_new">
+                                                          <div className="flex items-center gap-2">
+                                                            <PlusCircle className="h-4 w-4" />
+                                                            <span>Add New...</span>
+                                                          </div>
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
                                         </div>
-                                        <Input defaultValue={col} className="h-8"/>
-                                    </div>
-                                    ))}
+                                        )
+                                    })}
                                 </CollapsibleContent>
                                 </Collapsible>
                             ))}
@@ -352,15 +408,39 @@ export default function ExtractPage() {
                                   </CollapsibleTrigger>
                                 </div>
                                 <CollapsibleContent className="pl-8 mt-2 space-y-2">
-                                  {type.columns.map(col => (
-                                    <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
-                                      <div className='flex items-center gap-2'>
-                                        <Checkbox id={`col-${type.name}-${col}`} defaultChecked/>
-                                        <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                  {type.columns.map(col => {
+                                    const configIndex = columnConfig.findIndex(c => c.tableId === table.id && c.originalHeader === col);
+                                    const config = configIndex !== -1 ? columnConfig[configIndex] : null;
+                                    
+                                    return (
+                                      <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
+                                        <div className='flex items-center gap-2'>
+                                          <Checkbox 
+                                            id={`col-holding-${type.name}-${col}`} 
+                                            checked={config?.included}
+                                            onCheckedChange={(checked) => handleColumnConfigChange(configIndex, 'included', !!checked)}
+                                          />
+                                          <Label htmlFor={`col-holding-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
+                                        </div>
+                                        {config && (
+                                            <Select value={config.newHeader} onValueChange={(value) => handleColumnRename(configIndex, value)}>
+                                                <SelectTrigger className="h-8">
+                                                    <SelectValue placeholder="Select a name" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {config.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                                    <SelectItem value="add_new">
+                                                      <div className="flex items-center gap-2">
+                                                        <PlusCircle className="h-4 w-4" />
+                                                        <span>Add New...</span>
+                                                      </div>
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
                                       </div>
-                                      <Input defaultValue={col} className="h-8"/>
-                                    </div>
-                                  ))}
+                                    )
+                                  })}
                                 </CollapsibleContent>
                               </Collapsible>
                             ))}
@@ -468,6 +548,30 @@ export default function ExtractPage() {
           )}
         </div>
       </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Add New Column Name</DialogTitle>
+                <DialogDescription>
+                    Enter a new name for the column. This will be added to the list of available options.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <Input 
+                    id="new-column-name"
+                    value={newColumnName}
+                    onChange={(e) => setNewColumnName(e.target.value)}
+                    placeholder="e.g. Transaction Amount (EUR)"
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                <Button onClick={handleAddNewColumnName}>Save</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+    
