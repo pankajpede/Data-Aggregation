@@ -394,7 +394,7 @@ export default function ExtractPage() {
             key={step.id}
             onClick={() => currentStep > step.id && setCurrentStep(step.id)}
             disabled={currentStep < step.id}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
               ${currentStep === step.id ? 'bg-background text-foreground shadow-sm' : ''}
               ${currentStep > step.id ? 'text-muted-foreground hover:bg-background/50' : 'text-muted-foreground/50 cursor-not-allowed'}
             `}
@@ -412,14 +412,14 @@ export default function ExtractPage() {
         return (
           <Card className="w-full max-w-2xl">
             <CardHeader>
-              <CardTitle>Upload your Document</CardTitle>
+              <CardTitle className="text-lg">Upload your Document</CardTitle>
               <CardDescription>Upload a PDF file to extract tables from. Max file size: 25MB.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center gap-4 p-8">
+            <CardContent className="flex flex-col items-center justify-center gap-4 p-6">
                 <div className="flex items-center justify-center w-full">
-                    <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-accent">
+                    <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-accent/50">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
+                            <UploadCloud className="w-8 h-8 mb-3 text-muted-foreground" />
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">{selectedFile ? selectedFile.name : 'PDF (MAX. 25MB)'}</p>
                         </div>
@@ -428,7 +428,7 @@ export default function ExtractPage() {
                 </div> 
               <Button onClick={handleUpload} disabled={isLoading || !selectedFile} className="w-full">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-                {isLoading ? 'Processing...' : 'Upload & Extract'}
+                {isLoading ? 'Extraction engine is working...' : 'Upload & Extract'}
               </Button>
             </CardContent>
           </Card>
@@ -437,12 +437,12 @@ export default function ExtractPage() {
         return (
             <Card className="w-full max-w-4xl">
               <CardHeader>
-                <CardTitle>Map & Configure</CardTitle>
+                <CardTitle className="text-lg">Map & Configure</CardTitle>
                 <CardDescription>We found {mockExtractedData.tables.length} tables. Select the data you want to extract and configure the columns.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockExtractedData.tables.map((table: ExtractedTable) => (
-                  <Collapsible key={table.id} className="rounded-lg border bg-card p-4 has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
+                  <Collapsible key={table.id} className="rounded-lg border bg-card p-3 has-[[data-state=checked]]:bg-accent/20 has-[[data-state=checked]]:border-primary/50">
                     <div className="flex items-center space-x-3">
                       <Checkbox 
                         id={table.id} 
@@ -451,7 +451,7 @@ export default function ExtractPage() {
                       />
                       <CollapsibleTrigger className="flex-1">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor={table.id} className="text-lg font-semibold cursor-pointer">{table.name}</Label>
+                            <Label htmlFor={table.id} className="text-base font-semibold cursor-pointer">{table.name}</Label>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <span>Expand</span>
                                 <ChevronsRight className="h-4 w-4" />
@@ -462,7 +462,12 @@ export default function ExtractPage() {
   
                     <CollapsibleContent>
                         {table.name === 'Transactions' ? (
-                            <div className="p-4 mt-4 border-t">
+                            <div className="p-4 mt-3 border-t">
+                             <div className="grid grid-cols-3 gap-x-4 px-8 pb-2">
+                                <Label className="font-semibold text-sm">Data as Reported</Label>
+                                <Label className="font-semibold text-sm">Field Name</Label>
+                                <Label className="font-semibold text-sm">Mapped To</Label>
+                            </div>
                             {mockTransactionTypes.map(type => (
                                 <Collapsible key={type.name} className="py-2">
                                 <div className="flex items-center space-x-3">
@@ -482,12 +487,13 @@ export default function ExtractPage() {
                                     </CollapsibleTrigger>
                                 </div>
                                 <CollapsibleContent className="pl-8 mt-2 space-y-2">
-                                    {type.columns.map((col, colIndex) => {
+                                    {type.columns.map((col) => {
                                         const configIndex = columnConfig.findIndex(c => c.tableId === table.id && c.originalHeader === col);
                                         const config = configIndex !== -1 ? columnConfig[configIndex] : null;
 
                                         return (
-                                        <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
+                                        <div key={col} className="grid grid-cols-3 items-center gap-4 py-1">
+                                            <Label className="font-light text-sm text-muted-foreground">{col}</Label>
                                             <div className='flex items-center gap-2'>
                                                 <Checkbox 
                                                     id={`col-${type.name}-${col}`} 
@@ -524,7 +530,12 @@ export default function ExtractPage() {
                             ))}
                             </div>
                         ) : table.name === 'Holdings' ? (
-                          <div className="p-4 mt-4 border-t">
+                          <div className="p-4 mt-3 border-t">
+                            <div className="grid grid-cols-3 gap-x-4 px-8 pb-2">
+                                <Label className="font-semibold text-sm">Data as Reported</Label>
+                                <Label className="font-semibold text-sm">Field Name</Label>
+                                <Label className="font-semibold text-sm">Mapped To</Label>
+                            </div>
                             {mockHoldingTypes.map(type => (
                               <Collapsible key={type.name} className="py-2">
                                 <div className="flex items-center space-x-3">
@@ -549,7 +560,8 @@ export default function ExtractPage() {
                                     const config = configIndex !== -1 ? columnConfig[configIndex] : null;
                                     
                                     return (
-                                      <div key={col} className="grid grid-cols-2 items-center gap-4 space-x-2 py-1">
+                                      <div key={col} className="grid grid-cols-3 items-center gap-4 py-1">
+                                        <Label className="font-light text-sm text-muted-foreground">{col}</Label>
                                         <div className='flex items-center gap-2'>
                                           <Checkbox 
                                             id={`col-holding-${type.name}-${col}`} 
@@ -586,7 +598,7 @@ export default function ExtractPage() {
                             ))}
                           </div>
                         ) : (
-                            <div className="max-h-60 overflow-auto rounded-md border mt-4">
+                            <div className="max-h-60 overflow-auto rounded-md border mt-3">
                             <Table>
                                 <TableHeader>
                                 <TableRow>
@@ -666,7 +678,7 @@ export default function ExtractPage() {
                       <Card key={table.id}>
                         <CardHeader>
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <CardTitle>{table.name}</CardTitle>
+                                <CardTitle className="text-lg">{table.name}</CardTitle>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -703,9 +715,9 @@ export default function ExtractPage() {
                                 <TableRow>
                                   {table.headers.map(h => (
                                     <TableHead key={h}>
-                                      <Button variant="ghost" onClick={() => handleSort(table.id, h)} className="px-0 h-auto hover:bg-transparent">
+                                      <Button variant="ghost" onClick={() => handleSort(table.id, h)} className="px-0 h-auto hover:bg-transparent text-xs">
                                         {h}
-                                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        <ArrowUpDown className="ml-2 h-3 w-3" />
                                       </Button>
                                     </TableHead>
                                   ))}
@@ -715,19 +727,19 @@ export default function ExtractPage() {
                                 {paginatedRows.map((row, i) => (
                                   <TableRow key={i}>
                                     {row.map((cell, j) => (
-                                      <TableCell key={j}>{cell}</TableCell>
+                                      <TableCell key={j} className="py-2 px-3 text-xs">{cell}</TableCell>
                                     ))}
                                   </TableRow>
                                 ))}
                               </TableBody>
                             </Table>
                           </div>
-                            <div className="flex items-center justify-between space-x-2 py-4 text-sm text-muted-foreground">
+                            <div className="flex items-center justify-between space-x-2 py-2 text-sm text-muted-foreground">
                                 <div>
-                                    <span className="font-medium">{((page - 1) * rpp) + 1}-{Math.min(page * rpp, totalRows)}</span> of <span className="font-medium">{totalRows}</span> rows
+                                    <span className="font-medium text-xs">{((page - 1) * rpp) + 1}-{Math.min(page * rpp, totalRows)}</span> of <span className="font-medium text-xs">{totalRows}</span> rows
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span>Rows per page</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs">Rows per page</span>
                                   <Select
                                       value={String(rpp)}
                                       onValueChange={(value) => {
@@ -735,12 +747,12 @@ export default function ExtractPage() {
                                           setCurrentPage(prev => ({...prev, [table.id]: 1}));
                                       }}
                                   >
-                                      <SelectTrigger className="h-8 w-16">
+                                      <SelectTrigger className="h-7 w-14 text-xs">
                                           <SelectValue placeholder={rpp} />
                                       </SelectTrigger>
                                       <SelectContent>
                                           {[5, 10, 20, 50].map(val => (
-                                              <SelectItem key={val} value={String(val)}>{val}</SelectItem>
+                                              <SelectItem key={val} value={String(val)} className="text-xs">{val}</SelectItem>
                                           ))}
                                       </SelectContent>
                                   </Select>
@@ -751,7 +763,7 @@ export default function ExtractPage() {
                                       size="icon"
                                       onClick={() => setCurrentPage(prev => ({...prev, [table.id]: 1}))}
                                       disabled={page <= 1}
-                                      className="h-8 w-8"
+                                      className="h-7 w-7"
                                     >
                                       <ChevronsLeft className="h-4 w-4" />
                                       <span className="sr-only">First page</span>
@@ -761,7 +773,7 @@ export default function ExtractPage() {
                                       size="icon"
                                       onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page - 1}))}
                                       disabled={page <= 1}
-                                      className="h-8 w-8"
+                                      className="h-7 w-7"
                                     >
                                       <ChevronLeft className="h-4 w-4" />
                                       <span className="sr-only">Previous page</span>
@@ -772,7 +784,7 @@ export default function ExtractPage() {
                                       size="icon"
                                       onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
                                       disabled={page >= totalPages}
-                                      className="h-8 w-8"
+                                      className="h-7 w-7"
                                     >
                                       <ChevronRight className="h-4 w-4" />
                                       <span className="sr-only">Next page</span>
@@ -782,7 +794,7 @@ export default function ExtractPage() {
                                       size="icon"
                                       onClick={() => setCurrentPage(prev => ({...prev, [table.id]: totalPages}))}
                                       disabled={page >= totalPages}
-                                      className="h-8 w-8"
+                                      className="h-7 w-7"
                                     >
                                       <ChevronsRight className="h-4 w-4" />
                                       <span className="sr-only">Last page</span>
@@ -803,7 +815,7 @@ export default function ExtractPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full items-center">
+    <div className="flex flex-col gap-4 w-full items-center p-4 sm:p-6">
       <div className="w-full max-w-6xl space-y-4">
         <div className="flex justify-between items-center">
             <StepIndicator />
@@ -879,3 +891,5 @@ export default function ExtractPage() {
     </div>
   );
 }
+
+    
