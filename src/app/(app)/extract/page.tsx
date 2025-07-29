@@ -85,14 +85,52 @@ export default function ExtractPage() {
   const finalTables = useMemo(() => {
     return selectedTables.map(table => {
       const tableConfig = columnConfig.filter(c => c.tableId === table.id);
-      const finalHeaders = tableConfig.filter(c => c.included).map(c => c.newHeader);
+      const includedHeaders = new Set<string>();
+
+      if (table.name === 'Transactions') {
+        selectedTransactionTypes.forEach(txnType => {
+          const typeInfo = mockTransactionTypes.find(t => t.name === txnType);
+          if (typeInfo) {
+            typeInfo.columns.forEach(col => {
+              const config = tableConfig.find(c => c.originalHeader === col);
+              if (config?.included) {
+                includedHeaders.add(col);
+              }
+            });
+          }
+        });
+      } else if (table.name === 'Holdings') {
+        selectedHoldingTypes.forEach(holdingType => {
+          const typeInfo = mockHoldingTypes.find(t => t.name === holdingType);
+          if (typeInfo) {
+            typeInfo.columns.forEach(col => {
+              const config = tableConfig.find(c => c.originalHeader === col);
+              if (config?.included) {
+                includedHeaders.add(col);
+              }
+            });
+          }
+        });
+      } else {
+        table.headers.forEach(header => {
+           const config = tableConfig.find(c => c.originalHeader === header);
+           if(config?.included){
+             includedHeaders.add(header);
+           }
+        });
+      }
       
-      const originalHeaderIndices = tableConfig
-        .map((c, i) => (c.included ? mockExtractedData.tables.find(t=>t.id === c.tableId)!.headers.indexOf(c.originalHeader) : -1))
-        .filter(i => i !== -1);
+      const finalHeaders = Array.from(includedHeaders).map(originalHeader => {
+        return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
+      });
+      
+      const originalHeaderOrder = Array.from(includedHeaders);
 
       const finalRows = table.rows.map(row => 
-        originalHeaderIndices.map(index => row[index])
+        originalHeaderOrder.map(header => {
+          const originalIndex = table.headers.indexOf(header);
+          return row[originalIndex]
+        })
       );
 
       return {
@@ -102,7 +140,7 @@ export default function ExtractPage() {
         rows: finalRows
       }
     });
-  }, [selectedTables, columnConfig]);
+  }, [selectedTables, columnConfig, selectedTransactionTypes, selectedHoldingTypes]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -377,7 +415,11 @@ export default function ExtractPage() {
                                                 <Checkbox 
                                                     id={`col-${type.name}-${col}`} 
                                                     checked={!!config?.included}
-                                                    onCheckedChange={(checked) => handleColumnConfigChange(configIndex, 'included', !!checked)}
+                                                    onCheckedChange={(checked) => {
+                                                        if (configIndex > -1) {
+                                                            handleColumnConfigChange(configIndex, 'included', !!checked)
+                                                        }
+                                                    }}
                                                 />
                                                 <Label htmlFor={`col-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
                                             </div>
@@ -435,7 +477,11 @@ export default function ExtractPage() {
                                           <Checkbox 
                                             id={`col-holding-${type.name}-${col}`} 
                                             checked={!!config?.included}
-                                            onCheckedChange={(checked) => handleColumnConfigChange(configIndex, 'included', !!checked)}
+                                            onCheckedChange={(checked) => {
+                                                if (configIndex > -1) {
+                                                    handleColumnConfigChange(configIndex, 'included', !!checked)
+                                                }
+                                            }}
                                           />
                                           <Label htmlFor={`col-holding-${type.name}-${col}`} className="font-light text-sm">{col}</Label>
                                         </div>
@@ -547,17 +593,16 @@ export default function ExtractPage() {
           </AnimatePresence>
         </div>
         <div className="flex justify-between w-full max-w-4xl mx-auto">
-          {currentStep > 1 && currentStep < 3 && (
+          {currentStep > 1 ? (
             <Button variant="outline" onClick={() => setCurrentStep(s => s - 1)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
-          )}
+          ) : <div />}
           {currentStep === 3 && (
              <Button variant="outline" onClick={resetWizard}>
                 <FileUp className="mr-2 h-4 w-4" /> Start New Extraction
             </Button>
           )}
-          <div />
           {currentStep === 2 && (
             <Button onClick={handleProceedToFinalStep} disabled={selectedTableIds.length === 0}>
               Next <ArrowRight className="ml-2 h-4 w-4" />
@@ -590,7 +635,3 @@ export default function ExtractPage() {
     </div>
   );
 }
-
-    
-
-    
