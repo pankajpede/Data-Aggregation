@@ -428,7 +428,7 @@ export default function ExtractPage() {
                 </div> 
               <Button onClick={handleUpload} disabled={isLoading || !selectedFile} className="w-full">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-                {isLoading ? 'Extraction engine is working...' : 'Upload & Extract'}
+                {isLoading ? 'Processing...' : 'Upload & Extract'}
               </Button>
             </CardContent>
           </Card>
@@ -463,11 +463,6 @@ export default function ExtractPage() {
                     <CollapsibleContent>
                         {table.name === 'Transactions' ? (
                             <div className="p-4 mt-3 border-t">
-                             <div className="grid grid-cols-3 gap-x-4 px-8 pb-2">
-                                <Label className="font-semibold text-sm">Data as Reported</Label>
-                                <Label className="font-semibold text-sm">Field Name</Label>
-                                <Label className="font-semibold text-sm">Mapped To</Label>
-                            </div>
                             {mockTransactionTypes.map(type => (
                                 <Collapsible key={type.name} className="py-2">
                                 <div className="flex items-center space-x-3">
@@ -492,8 +487,7 @@ export default function ExtractPage() {
                                         const config = configIndex !== -1 ? columnConfig[configIndex] : null;
 
                                         return (
-                                        <div key={col} className="grid grid-cols-3 items-center gap-4 py-1">
-                                            <Label className="font-light text-sm text-muted-foreground">{col}</Label>
+                                        <div key={col} className="grid grid-cols-2 items-center gap-4 py-1">
                                             <div className='flex items-center gap-2'>
                                                 <Checkbox 
                                                     id={`col-${type.name}-${col}`} 
@@ -531,11 +525,6 @@ export default function ExtractPage() {
                             </div>
                         ) : table.name === 'Holdings' ? (
                           <div className="p-4 mt-3 border-t">
-                            <div className="grid grid-cols-3 gap-x-4 px-8 pb-2">
-                                <Label className="font-semibold text-sm">Data as Reported</Label>
-                                <Label className="font-semibold text-sm">Field Name</Label>
-                                <Label className="font-semibold text-sm">Mapped To</Label>
-                            </div>
                             {mockHoldingTypes.map(type => (
                               <Collapsible key={type.name} className="py-2">
                                 <div className="flex items-center space-x-3">
@@ -560,8 +549,7 @@ export default function ExtractPage() {
                                     const config = configIndex !== -1 ? columnConfig[configIndex] : null;
                                     
                                     return (
-                                      <div key={col} className="grid grid-cols-3 items-center gap-4 py-1">
-                                        <Label className="font-light text-sm text-muted-foreground">{col}</Label>
+                                      <div key={col} className="grid grid-cols-2 items-center gap-4 py-1">
                                         <div className='flex items-center gap-2'>
                                           <Checkbox 
                                             id={`col-holding-${type.name}-${col}`} 
