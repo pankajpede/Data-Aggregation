@@ -10,7 +10,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-lg font-bold tracking-tight">Dashboard</h1>
         <div className="flex items-center gap-2">
           <Button asChild>
             <Link href="/extract">
@@ -28,7 +28,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-xl font-bold">$45,231.89</div>
             <p className="text-xs text-muted-foreground">+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -38,7 +38,7 @@ export default function DashboardPage() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12</div>
+            <div className="text-xl font-bold">+12</div>
             <p className="text-xs text-muted-foreground">+5 since last week</p>
           </CardContent>
         </Card>
@@ -48,7 +48,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+235</div>
+            <div className="text-xl font-bold">+235</div>
             <p className="text-xs text-muted-foreground">+23 this month</p>
           </CardContent>
         </Card>
@@ -58,7 +58,7 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+95%</div>
+            <div className="text-xl font-bold">+95%</div>
             <p className="text-xs text-muted-foreground">Automation Rate</p>
           </CardContent>
         </Card>

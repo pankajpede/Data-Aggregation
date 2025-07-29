@@ -667,18 +667,15 @@ export default function ExtractPage() {
                         <CardHeader>
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <CardTitle>{table.name}</CardTitle>
-                                <CardDescription>
-                                    Here is your finalized table. You can now export it in your desired format.
-                                </CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent>
-                           <div className="flex items-center justify-between py-4">
+                           <div className="flex items-center justify-between py-2">
                                 <Input 
                                     placeholder="Search table..."
                                     value={searchQueries[table.id] || ''}
                                     onChange={(e) => handleSearchChange(table.id, e.target.value)}
-                                    className="max-w-sm"
+                                    className="max-w-sm h-9"
                                 />
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -706,7 +703,7 @@ export default function ExtractPage() {
                                 <TableRow>
                                   {table.headers.map(h => (
                                     <TableHead key={h}>
-                                      <Button variant="ghost" onClick={() => handleSort(table.id, h)}>
+                                      <Button variant="ghost" onClick={() => handleSort(table.id, h)} className="px-0 h-auto hover:bg-transparent">
                                         {h}
                                         <ArrowUpDown className="ml-2 h-4 w-4" />
                                       </Button>
@@ -806,8 +803,8 @@ export default function ExtractPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 w-full items-center">
-      <div className="w-full max-w-6xl space-y-8">
+    <div className="flex flex-col gap-4 w-full items-center">
+      <div className="w-full max-w-6xl space-y-4">
         <div className="flex justify-between items-center">
             <StepIndicator />
              <TooltipProvider>
@@ -825,7 +822,7 @@ export default function ExtractPage() {
               </Tooltip>
             </TooltipProvider>
         </div>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-4 flex justify-center">
            <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
