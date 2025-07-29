@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 type ColumnConfig = {
@@ -809,12 +810,20 @@ export default function ExtractPage() {
       <div className="w-full max-w-6xl space-y-8">
         <div className="flex justify-between items-center">
             <StepIndicator />
-            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
-                <Button variant="ghost" size="icon">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back to Dashboard</span>
-                </Button>
-            </Link>
+             <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/">
+                    <Button variant="ghost" size="icon" aria-label="Back to Dashboard">
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Back to Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
         </div>
         <div className="mt-8 flex justify-center">
            <AnimatePresence mode="wait">
