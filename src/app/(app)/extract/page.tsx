@@ -13,12 +13,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 type ColumnConfig = {
@@ -259,7 +260,7 @@ export default function ExtractPage() {
     }
   };
 
-  const exportData = (format: 'csv' | 'json', table: typeof finalTables[0]) => {
+  const exportData = (format: 'csv' | 'json' | 'excel', table: typeof finalTables[0]) => {
     const dataToExport = table.rows.map(row => {
       let obj: {[key: string]: string} = {};
       table.headers.forEach((header, i) => {
@@ -276,7 +277,7 @@ export default function ExtractPage() {
       link.href = jsonString;
       link.download = `${filename}.json`;
       link.click();
-    } else if (format === 'csv') {
+    } else if (format === 'csv' || format === 'excel') {
       const csvRows = [
         table.headers.join(','),
         ...table.rows.map(row => row.join(','))
@@ -286,7 +287,7 @@ export default function ExtractPage() {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `${filename}.csv`);
+      link.setAttribute('download', `${filename}.${format === 'excel' ? 'xls' : 'csv'}`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -644,29 +645,40 @@ export default function ExtractPage() {
                       return(
                       <Card key={table.id}>
                         <CardHeader>
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex-1">
                                     <CardTitle>{table.name}</CardTitle>
                                     <CardDescription>
                                         Here is your finalized table. You can now export it in your desired format.
                                     </CardDescription>
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                                    <Button variant="outline" onClick={() => exportData('json', table)}>
-                                    <Download className="mr-2 h-4 w-4" /> Export as JSON
-                                    </Button>
-                                    <Button onClick={() => exportData('csv', table)}>
-                                    <Download className="mr-2 h-4 w-4" /> Export as CSV
-                                    </Button>
-                                </div>
                             </div>
-                            <div className="mt-4">
+                            <div className="mt-4 flex items-center justify-between">
                                 <Input 
                                     placeholder="Search table..."
                                     value={searchQueries[table.id] || ''}
                                     onChange={(e) => handleSearchChange(table.id, e.target.value)}
                                     className="max-w-sm"
                                 />
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon">
+                                            <MoreVertical className="h-4 w-4" />
+                                            <span className="sr-only">Export options</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => exportData('json', table)}>
+                                            JSON
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => exportData('csv', table)}>
+                                            CSV
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => exportData('excel', table)}>
+                                            Excel
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </CardHeader>
                         <CardContent>
