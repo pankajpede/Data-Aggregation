@@ -101,13 +101,9 @@ export default function ExtractPage() {
               return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
             });
 
-            // For simplicity, we'll reuse the same mock rows for each subtype
-            // In a real scenario, you'd filter rows based on the transaction type
-            const finalRows = table.rows.map(row =>
-              includedHeaders.map(header => {
-                const originalIndex = table.headers.indexOf(header);
-                return row[originalIndex] ?? '';
-              })
+            // Use specific mock rows for each subtype
+            const finalRows = typeInfo.rows.map(rowObj => 
+                includedHeaders.map(header => rowObj[header] ?? '')
             );
             
             tables.push({
@@ -131,11 +127,8 @@ export default function ExtractPage() {
             const finalHeaders = includedHeaders.map(originalHeader => {
               return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
             });
-            const finalRows = table.rows.map(row =>
-              includedHeaders.map(header => {
-                const originalIndex = table.headers.indexOf(header);
-                return row[originalIndex] ?? '';
-              })
+            const finalRows = typeInfo.rows.map(rowObj =>
+              includedHeaders.map(header => rowObj[header] ?? '')
             );
              tables.push({
               id: `${table.id}-${holdingType}`,

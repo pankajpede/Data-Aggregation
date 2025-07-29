@@ -13,38 +13,73 @@ export const mockExtractedData: { tables: ExtractedTable[] } = {
     {
       id: 'table_1',
       name: 'Transactions',
-      headers: ['Transaction Date', 'Details', 'Amount (USD)', 'Category', 'Status'],
-      rows: [
-        ['2023-10-01', 'Invoice #INV-001 Payment', '5000.00', 'Revenue', 'Completed'],
-        ['2023-10-02', 'Software Subscription', '-150.00', 'Operating Expense', 'Completed'],
-        ['2023-10-03', 'Office Supplies Purchase', '-75.50', 'Operating Expense', 'Completed'],
-        ['2023-10-05', 'Client A Project Milestone', '12000.00', 'Revenue', 'Completed'],
-        ['2023-10-07', 'Cloud Hosting Services', '-300.00', 'Operating Expense', 'Pending'],
-      ],
+      headers: [], // Headers are now defined in mockTransactionTypes
+      rows: [], // Rows are now defined in mockTransactionTypes
     },
     {
       id: 'table_2',
       name: 'Holdings',
-      headers: ['Security ID', 'Description', 'Quantity', 'Market Value', 'Portfolio %'],
-      rows: [
-        ['AAPL', 'Apple Inc.', '100', '15000.00', '15.0'],
-        ['GOOGL', 'Alphabet Inc.', '50', '12500.00', '12.5'],
-        ['MSFT', 'Microsoft Corp.', '75', '22500.00', '22.5'],
-        ['TSLA', 'Tesla Inc.', '30', '7500.00', '7.5'],
-      ],
+      headers: [], // Headers are now defined in mockHoldingTypes
+      rows: [], // Rows are now defined in mockHoldingTypes
     },
   ],
 };
 
 export const mockTransactionTypes = [
-    { name: 'Dividend', columns: ['Ex-Date', 'Payable-Date', 'Amount', 'Currency'] },
-    { name: 'Sales', columns: ['Date', 'Security', 'Quantity', 'Price', 'Fees'] },
-    { name: 'Purchase', columns: ['Date', 'Security', 'Quantity', 'Price', 'Fees'] },
-    { name: 'Income', columns: ['Date', 'Source', 'Gross Amount', 'Taxes', 'Net Amount'] },
-    { name: 'Foreign Dividend', columns: ['Ex-Date', 'Payable-Date', 'Amount (Foreign)', 'FX Rate', 'Amount (USD)'] },
-    { name: 'Depository Bank (ADR) Fee', columns: ['Date', 'Description', 'Amount'] },
+    { 
+        name: 'Dividend', 
+        columns: ['Ex-Date', 'Payable-Date', 'Amount', 'Currency'],
+        rows: [
+            { 'Ex-Date': '2023-10-15', 'Payable-Date': '2023-10-30', 'Amount': '150.00', 'Currency': 'USD' },
+            { 'Ex-Date': '2023-07-15', 'Payable-Date': '2023-07-30', 'Amount': '145.50', 'Currency': 'USD' },
+        ] 
+    },
+    { 
+        name: 'Sales', 
+        columns: ['Date', 'Security', 'Quantity', 'Price', 'Fees'],
+        rows: [
+            { 'Date': '2023-10-20', 'Security': 'TSLA', 'Quantity': '10', 'Price': '250.00', 'Fees': '5.00' },
+        ]
+    },
+    { 
+        name: 'Purchase', 
+        columns: ['Date', 'Security', 'Quantity', 'Price', 'Fees'],
+        rows: [
+            { 'Date': '2023-10-05', 'Security': 'NVDA', 'Quantity': '5', 'Price': '450.00', 'Fees': '5.00' },
+        ]
+    },
+    { 
+        name: 'Income', 
+        columns: ['Date', 'Source', 'Gross Amount', 'Taxes', 'Net Amount'],
+        rows: [
+            { 'Date': '2023-10-01', 'Source': 'Interest', 'Gross Amount': '50.00', 'Taxes': '7.50', 'Net Amount': '42.50'},
+        ]
+    },
+    { 
+        name: 'Foreign Dividend', 
+        columns: ['Ex-Date', 'Payable-Date', 'Amount (Foreign)', 'FX Rate', 'Amount (USD)'],
+        rows: [
+             { 'Ex-Date': '2023-09-10', 'Payable-Date': '2023-09-25', 'Amount (Foreign)': '100.00', 'FX Rate': '1.05', 'Amount (USD)': '105.00' },
+        ]
+    },
+    { 
+        name: 'Depository Bank (ADR) Fee', 
+        columns: ['Date', 'Description', 'Amount'],
+        rows: [
+            { 'Date': '2023-09-30', 'Description': 'ADR Fee for SHELL PLC', 'Amount': '2.50' },
+        ] 
+    },
 ];
 
 export const mockHoldingTypes = [
-    { name: 'Holdings', columns: ['Security ID', 'Description', 'Quantity', 'Market Value', 'Portfolio %'] },
+    { 
+        name: 'Holdings', 
+        columns: ['Security ID', 'Description', 'Quantity', 'Market Value', 'Portfolio %'],
+        rows: [
+            { 'Security ID': 'AAPL', 'Description': 'Apple Inc.', 'Quantity': '100', 'Market Value': '17000.00', 'Portfolio %': '17.0' },
+            { 'Security ID': 'GOOGL', 'Description': 'Alphabet Inc.', 'Quantity': '50', 'Market Value': '13500.00', 'Portfolio %': '13.5' },
+            { 'Security ID': 'MSFT', 'Description': 'Microsoft Corp.', 'Quantity': '75', 'Market Value': '25500.00', 'Portfolio %': '25.5' },
+            { 'Security ID': 'NVDA', 'Description': 'NVIDIA Corp.', 'Quantity': '35', 'Price': '455.00', 'Market Value': '15925.00', 'Portfolio %': '15.9' },
+        ]
+    },
 ];
