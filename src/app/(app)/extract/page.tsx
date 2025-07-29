@@ -30,8 +30,8 @@ type ColumnConfig = {
 
 const STEPS = [
   { id: 1, name: 'Upload PDF' },
-  { id: 2, name: 'Preview & Select' },
-  { id: 3, name: 'Visualize & Export' },
+  { id: 2, name: 'Map & Configure' },
+  { id: 3, name: 'Analyze & Export' },
 ];
 
 export default function ExtractPage() {
