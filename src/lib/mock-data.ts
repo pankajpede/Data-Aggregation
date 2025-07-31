@@ -114,7 +114,7 @@ export const mockTransactionTypes = [
         }))
     },
     { 
-        name: 'Foreign_Dividend', 
+        name: 'Foreign Dividend', 
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'NARRATION', 'Foreign Withholding', 'Currency', 'Amount', 'Ticker or Security Name'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Interactive Brokers',
@@ -128,7 +128,7 @@ export const mockTransactionTypes = [
         }))
     },
     { 
-        name: 'Depository_Bank_ADR_Fee', 
+        name: 'Depository Bank (ADR) Fee', 
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'CUSIP', 'FEE_AMOUNT', 'FEE_DESCRIPTION', 'TICKER'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Citibank',
@@ -141,7 +141,7 @@ export const mockTransactionTypes = [
         }))
     },
     {
-        name: 'Cash_In_Lieu_of_Shares',
+        name: 'Cash In Lieu of Shares',
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'NARRATION', 'AMOUNT', 'REASON or COMMENT'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'E*TRADE',
@@ -153,7 +153,7 @@ export const mockTransactionTypes = [
         }))
     },
     {
-        name: 'Bank_Interest',
+        name: 'Bank Interest',
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'INTEREST_AMOUNT', 'CURRENCY'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Bank of America',
@@ -164,7 +164,7 @@ export const mockTransactionTypes = [
         }))
     },
     {
-        name: 'Advisory_Program_Fee',
+        name: 'Advisory Program Fee',
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'FEE_AMOUNT', 'FEE_DESCRIPTION'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Morgan Stanley',
