@@ -529,7 +529,6 @@ export default function ExtractPage() {
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
                                     <h3 className="text-base font-semibold">{transactionType.name}</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <span>View Data</span>
                                         <ChevronRight className="h-4 w-4" />
                                     </div>
                                 </CollapsibleTrigger>
@@ -647,7 +646,6 @@ export default function ExtractPage() {
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
                                     <h3 className="text-base font-semibold">Holdings</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <span>View Data</span>
                                         <ChevronRight className="h-4 w-4" />
                                     </div>
                                 </CollapsibleTrigger>
@@ -1080,7 +1078,7 @@ export default function ExtractPage() {
                                     <Button
                                       variant="outline"
                                       size="icon"
-                                      onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
+                                      onClick={()={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
                                       disabled={page >= totalPages}
                                       className="h-7 w-7"
                                     >
@@ -1194,3 +1192,5 @@ export default function ExtractPage() {
     </div>
   );
 }
+
+    
