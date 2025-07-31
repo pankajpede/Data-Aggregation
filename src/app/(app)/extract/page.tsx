@@ -503,7 +503,7 @@ export default function ExtractPage() {
                         <TabsTrigger value="holding">Holdings</TabsTrigger>
                     </TabsList>
                     <TabsContent value="transaction" className="space-y-2">
-                        {step2Data.transactions.map(transactionType => {
+                        {step2Data.transactions.map((transactionType, index) => {
                             const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(transactionType);
                             const page = step2CurrentPage[transactionType.name] || 1;
                             const rpp = step2RowsPerPage[transactionType.name] || 10;
@@ -525,7 +525,7 @@ export default function ExtractPage() {
                             };
 
                             return (
-                            <Collapsible key={transactionType.name} className="rounded-lg border bg-card p-3">
+                            <Collapsible key={transactionType.name} defaultOpen={index === 0} className="rounded-lg border bg-card p-3">
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
                                     <h3 className="text-base font-semibold">{transactionType.name}</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -622,7 +622,7 @@ export default function ExtractPage() {
                         )})}
                     </TabsContent>
                     <TabsContent value="holding">
-                        {step2Data.holdings.map(holdingsData => {
+                        {step2Data.holdings.map((holdingsData, index) => {
                             const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(holdingsData);
                             const page = step2CurrentPage[holdingsData.name] || 1;
                             const rpp = step2RowsPerPage[holdingsData.name] || 10;
@@ -643,7 +643,7 @@ export default function ExtractPage() {
                                 return pageNumbers;
                             };
                             return (
-                                <Collapsible key={holdingsData.name} className="rounded-lg border bg-card p-3">
+                                <Collapsible key={holdingsData.name} defaultOpen={index === 0} className="rounded-lg border bg-card p-3">
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
                                     <h3 className="text-base font-semibold">Holdings</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
