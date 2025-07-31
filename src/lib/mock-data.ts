@@ -32,9 +32,9 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Apex Clearing',
             'ACCOUNT_NUMBER': `ACCT${12345 + i}`,
-            'AS_OF_DATE': `2023-10-${28 - i}`,
-            'TRADE_DATE': `2023-10-${27 - i}`,
-            'SETTLEMENT_DATE': `2023-10-${29 - i}`,
+            'AS_OF_DATE': `2023-10-${String(28 - i).padStart(2, '0')}`,
+            'TRADE_DATE': `2023-10-${String(27 - i).padStart(2, '0')}`,
+            'SETTLEMENT_DATE': `2023-10-${String(29 - i).padStart(2, '0')}`,
             'CUSIP': `CUSIP${98765 - i}`,
             'TICKER': 'AAPL',
             'TRANSACTION_CODE': 'DIV',
@@ -57,9 +57,9 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Fidelity',
             'ACCOUNT_NUMBER': `ACCT${54321 + i}`,
-            'AS_OF_DATE': `2023-10-${28 - i}`,
-            'TRADE_DATE': `2023-10-${27 - i}`,
-            'SETTLEMENT_DATE': `2023-10-${29 - i}`,
+            'AS_OF_DATE': `2023-10-${String(28 - i).padStart(2, '0')}`,
+            'TRADE_DATE': `2023-10-${String(27 - i).padStart(2, '0')}`,
+            'SETTLEMENT_DATE': `2023-10-${String(29 - i).padStart(2, '0')}`,
             'CUSIP': `CUSIP${12345 - i}`,
             'TICKER': 'TSLA',
             'TRANSACTION_CODE': 'SELL',
@@ -82,9 +82,9 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Charles Schwab',
             'ACCOUNT_NUMBER': `ACCT${24680 + i}`,
-            'AS_OF_DATE': `2023-10-${28 - i}`,
-            'TRADE_DATE': `2023-10-${27 - i}`,
-            'SETTLEMENT_DATE': `2023-10-${29 - i}`,
+            'AS_OF_DATE': `2023-10-${String(28 - i).padStart(2, '0')}`,
+            'TRADE_DATE': `2023-10-${String(27 - i).padStart(2, '0')}`,
+            'SETTLEMENT_DATE': `2023-10-${String(29 - i).padStart(2, '0')}`,
             'CUSIP': `CUSIP${54321 - i}`,
             'TICKER': 'NVDA',
             'TRANSACTION_CODE': 'BUY',
@@ -107,7 +107,7 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Vanguard',
             'ACCOUNT_NUMBER': `ACCT${13579 + i}`,
-            'AS_OF_DATE': `2023-${12 - i}-01`,
+            'AS_OF_DATE': `2023-${String(12 - i).padStart(2, '0')}-01`,
             'NARRATION': 'INTEREST INCOME',
             'AMOUNT': `${(50 + i * 5).toFixed(2)}`,
             'TICKER': 'VMFXX'
@@ -119,7 +119,7 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Interactive Brokers',
             'ACCOUNT_NUMBER': `ACCT${97531 + i}`,
-            'AS_OF_DATE': `2023-${12-i}-15`,
+            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-15`,
             'NARRATION': 'FOREIGN DIVIDEND',
             'Foreign Withholding': `${(15 + i * 0.5).toFixed(2)}`,
             'Currency': 'EUR',
@@ -133,7 +133,7 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Citibank',
             'ACCOUNT_NUMBER': `ACCT${86420 + i}`,
-            'AS_OF_DATE': `2023-${12-i}-31`,
+            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-31`,
             'CUSIP': `CUSIP${24680 - i}`,
             'FEE_AMOUNT': '2.50',
             'FEE_DESCRIPTION': 'ADR CUSTODY FEE',
@@ -146,7 +146,7 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'E*TRADE',
             'ACCOUNT_NUMBER': `ACCT${11223 + i}`,
-            'AS_OF_DATE': `2023-${12-i}-20`,
+            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-20`,
             'NARRATION': 'CASH IN LIEU OF FRACTIONAL SHARES',
             'AMOUNT': `${(25.50 + i).toFixed(2)}`,
             'REASON or COMMENT': 'Post-Split Liquidation'
@@ -158,7 +158,7 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Bank of America',
             'ACCOUNT_NUMBER': `ACCT${33445 + i}`,
-            'AS_OF_DATE': `2023-${12-i}-01`,
+            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-01`,
             'INTEREST_AMOUNT': `${(12.34 + i * 0.5).toFixed(2)}`,
             'CURRENCY': 'USD'
         }))
@@ -169,7 +169,7 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Morgan Stanley',
             'ACCOUNT_NUMBER': `ACCT${55667 + i}`,
-            'AS_OF_DATE': `2023-${12-i}-28`,
+            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-28`,
             'FEE_AMOUNT': `${(150.00 + i * 10).toFixed(2)}`,
             'FEE_DESCRIPTION': 'QUARTERLY ADVISORY FEE'
         }))
@@ -184,7 +184,7 @@ export const mockHoldingTypes = [
             { 'Security ID': 'AAPL', 'Description': 'Apple Inc.', 'Quantity': '100', 'Market Value': '17000.00', 'Portfolio %': '10.0' },
             { 'Security ID': 'GOOGL', 'Description': 'Alphabet Inc.', 'Quantity': '50', 'Market Value': '13500.00', 'Portfolio %': '8.0' },
             { 'Security ID': 'MSFT', 'Description': 'Microsoft Corp.', 'Quantity': '75', 'Market Value': '25500.00', 'Portfolio %': '15.0' },
-            { 'Security ID': 'NVDA', 'Description': 'NVIDIA Corp.', 'Quantity': '35', 'Price': '455.00', 'Market Value': '15925.00', 'Portfolio %': '9.4' },
+            { 'Security ID': 'NVDA', 'Description': 'NVIDIA Corp.', 'Quantity': '35', 'Market Value': '15925.00', 'Portfolio %': '9.4' },
             { 'Security ID': 'AMZN', 'Description': 'Amazon.com, Inc.', 'Quantity': '60', 'Market Value': '8400.00', 'Portfolio %': '5.0' },
             { 'Security ID': 'TSLA', 'Description': 'Tesla, Inc.', 'Quantity': '40', 'Market Value': '10000.00', 'Portfolio %': '5.9' },
             { 'Security ID': 'JPM', 'Description': 'JPMorgan Chase & Co.', 'Quantity': '120', 'Market Value': '16800.00', 'Portfolio %': '9.9' },
