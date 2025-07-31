@@ -403,7 +403,7 @@ export default function ExtractPage() {
 
   const getStep2PaginatedAndSortedData = useCallback((table: {name: string, columns: string[], rows: Record<string, string>[]}) => {
     const tableId = table.name;
-    const rpp = step2RowsPerPage[tableId] || 5;
+    const rpp = step2RowsPerPage[tableId] || 10;
     const query = step2SearchQueries[tableId] || '';
     const sortConfig = step2SortConfigs[tableId];
     const page = step2CurrentPage[tableId] || 1;
@@ -493,7 +493,7 @@ export default function ExtractPage() {
                 {mockTransactionTypes.map(transactionType => {
                     const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(transactionType);
                     const page = step2CurrentPage[transactionType.name] || 1;
-                    const rpp = step2RowsPerPage[transactionType.name] || 5;
+                    const rpp = step2RowsPerPage[transactionType.name] || 10;
 
                     const renderPageNumbers = () => {
                         const pageNumbers = [];
@@ -584,7 +584,7 @@ export default function ExtractPage() {
                 {(() => {
                     const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(holdingsData);
                     const page = step2CurrentPage[holdingsData.name] || 1;
-                    const rpp = step2RowsPerPage[holdingsData.name] || 5;
+                    const rpp = step2RowsPerPage[holdingsData.name] || 10;
 
                     const renderPageNumbers = () => {
                         const pageNumbers = [];
