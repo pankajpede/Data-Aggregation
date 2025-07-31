@@ -32,9 +32,9 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Apex Clearing',
             'ACCOUNT_NUMBER': `ACCT${12345 + i}`,
-            'AS_OF_DATE': `2023-10-${String(28 - i).padStart(2, '0')}`,
-            'TRADE_DATE': `2023-10-${String(27 - i).padStart(2, '0')}`,
-            'SETTLEMENT_DATE': `2023-10-${String(29 - i).padStart(2, '0')}`,
+            'AS_OF_DATE': `2023-10-${String(i + 1).padStart(2, '0')}`,
+            'TRADE_DATE': `2023-10-${String(i + 1).padStart(2, '0')}`,
+            'SETTLEMENT_DATE': `2023-10-${String(i + 2).padStart(2, '0')}`,
             'CUSIP': `CUSIP${98765 - i}`,
             'TICKER': 'AAPL',
             'TRANSACTION_CODE': 'DIV',
@@ -57,9 +57,9 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Fidelity',
             'ACCOUNT_NUMBER': `ACCT${54321 + i}`,
-            'AS_OF_DATE': `2023-10-${String(28 - i).padStart(2, '0')}`,
-            'TRADE_DATE': `2023-10-${String(27 - i).padStart(2, '0')}`,
-            'SETTLEMENT_DATE': `2023-10-${String(29 - i).padStart(2, '0')}`,
+            'AS_OF_DATE': `2023-10-${String(i + 1).padStart(2, '0')}`,
+            'TRADE_DATE': `2023-10-${String(i + 1).padStart(2, '0')}`,
+            'SETTLEMENT_DATE': `2023-10-${String(i + 2).padStart(2, '0')}`,
             'CUSIP': `CUSIP${12345 - i}`,
             'TICKER': 'TSLA',
             'TRANSACTION_CODE': 'SELL',
@@ -82,9 +82,9 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Charles Schwab',
             'ACCOUNT_NUMBER': `ACCT${24680 + i}`,
-            'AS_OF_DATE': `2023-10-${String(28 - i).padStart(2, '0')}`,
-            'TRADE_DATE': `2023-10-${String(27 - i).padStart(2, '0')}`,
-            'SETTLEMENT_DATE': `2023-10-${String(29 - i).padStart(2, '0')}`,
+            'AS_OF_DATE': `2023-10-${String(i + 1).padStart(2, '0')}`,
+            'TRADE_DATE': `2023-10-${String(i + 1).padStart(2, '0')}`,
+            'SETTLEMENT_DATE': `2023-10-${String(i + 2).padStart(2, '0')}`,
             'CUSIP': `CUSIP${54321 - i}`,
             'TICKER': 'NVDA',
             'TRANSACTION_CODE': 'BUY',
@@ -107,19 +107,19 @@ export const mockTransactionTypes = [
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Vanguard',
             'ACCOUNT_NUMBER': `ACCT${13579 + i}`,
-            'AS_OF_DATE': `2023-${String(12 - i).padStart(2, '0')}-01`,
+            'AS_OF_DATE': `2023-${String(i + 1).padStart(2, '0')}-01`,
             'NARRATION': 'INTEREST INCOME',
             'AMOUNT': `${(50 + i * 5).toFixed(2)}`,
             'TICKER': 'VMFXX'
         }))
     },
     { 
-        name: 'Foreign Dividend', 
+        name: 'Foreign_Dividend', 
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'NARRATION', 'Foreign Withholding', 'Currency', 'Amount', 'Ticker or Security Name'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Interactive Brokers',
             'ACCOUNT_NUMBER': `ACCT${97531 + i}`,
-            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-15`,
+            'AS_OF_DATE': `2023-${String(i + 1).padStart(2, '0')}-15`,
             'NARRATION': 'FOREIGN DIVIDEND',
             'Foreign Withholding': `${(15 + i * 0.5).toFixed(2)}`,
             'Currency': 'EUR',
@@ -128,12 +128,12 @@ export const mockTransactionTypes = [
         }))
     },
     { 
-        name: 'Depository Bank (ADR) Fee', 
+        name: 'Depository_Bank_ADR_Fee', 
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'CUSIP', 'FEE_AMOUNT', 'FEE_DESCRIPTION', 'TICKER'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Citibank',
             'ACCOUNT_NUMBER': `ACCT${86420 + i}`,
-            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-31`,
+            'AS_OF_DATE': `2023-${String(i + 1).padStart(2, '0')}-31`,
             'CUSIP': `CUSIP${24680 - i}`,
             'FEE_AMOUNT': '2.50',
             'FEE_DESCRIPTION': 'ADR CUSTODY FEE',
@@ -141,35 +141,35 @@ export const mockTransactionTypes = [
         }))
     },
     {
-        name: 'Cash In Lieu of Shares',
+        name: 'Cash_In_Lieu_of_Shares',
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'NARRATION', 'AMOUNT', 'REASON or COMMENT'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'E*TRADE',
             'ACCOUNT_NUMBER': `ACCT${11223 + i}`,
-            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-20`,
+            'AS_OF_DATE': `2023-${String(i + 1).padStart(2, '0')}-20`,
             'NARRATION': 'CASH IN LIEU OF FRACTIONAL SHARES',
             'AMOUNT': `${(25.50 + i).toFixed(2)}`,
             'REASON or COMMENT': 'Post-Split Liquidation'
         }))
     },
     {
-        name: 'Bank Interest',
+        name: 'Bank_Interest',
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'INTEREST_AMOUNT', 'CURRENCY'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Bank of America',
             'ACCOUNT_NUMBER': `ACCT${33445 + i}`,
-            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-01`,
+            'AS_OF_DATE': `2023-${String(i + 1).padStart(2, '0')}-01`,
             'INTEREST_AMOUNT': `${(12.34 + i * 0.5).toFixed(2)}`,
             'CURRENCY': 'USD'
         }))
     },
     {
-        name: 'Advisory Program Fee',
+        name: 'Advisory_Program_Fee',
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'FEE_AMOUNT', 'FEE_DESCRIPTION'],
         rows: Array.from({ length: 12 }, (_, i) => ({
             'CUSTODIAN_NAME': 'Morgan Stanley',
             'ACCOUNT_NUMBER': `ACCT${55667 + i}`,
-            'AS_OF_DATE': `2023-${String(12-i).padStart(2, '0')}-28`,
+            'AS_OF_DATE': `2023-${String(i + 1).padStart(2, '0')}-28`,
             'FEE_AMOUNT': `${(150.00 + i * 10).toFixed(2)}`,
             'FEE_DESCRIPTION': 'QUARTERLY ADVISORY FEE'
         }))
