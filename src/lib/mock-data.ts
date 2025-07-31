@@ -207,20 +207,34 @@ export const getMockDataWithErrors = (mockData: MockTable[]) => {
     return mockData.map(table => {
         const newRows = table.rows.map((row, index) => {
             const newRow = { ...row };
-            if (index < 4) { // Add errors to the first 4 rows
+            // Add errors to the first 5 rows
+            if (index < 5) {
                 const errorColumn = table.columns[index % table.columns.length];
                 const originalValue = newRow[errorColumn];
                 if (table.name === 'Holdings' && errorColumn === 'Quantity') {
-                    newRow[errorColumn] = { value: 'INVALID_QNTY', error: 'Invalid data format: Expected a number.' };
+                    newRow[errorColumn] = { value: `QNTY-ERR-${index}`, error: 'Invalid data format: Expected a number.' };
                 } else if (errorColumn.includes('_DATE')) {
-                     newRow[errorColumn] = { value: '2023/13/45', error: 'Invalid date format.' };
-                } else if (errorColumn.includes('AMOUNT') || errorColumn.includes('PRICE')) {
-                     newRow[errorColumn] = { value: `ABC${originalValue}`, error: 'Invalid numeric value.' };
+                     newRow[errorColumn] = { value: `2023/13/${10+index}`, error: 'Invalid date format.' };
+                } else if (errorColumn.toLowerCase().includes('amount') || errorColumn.toLowerCase().includes('price')) {
+                     newRow[errorColumn] = { value: `ERR-${originalValue}`, error: 'Invalid numeric value.' };
                 } else if (errorColumn === 'TICKER') {
-                     newRow[errorColumn] = { value: 12345, error: 'Invalid ticker symbol: Expected a string.' };
+                     newRow[errorColumn] = { value: 12345 + index, error: 'Invalid ticker symbol: Expected a string.' };
                 } else {
                      newRow[errorColumn] = { value: originalValue, error: 'Unspecified data validation error.' };
                 }
+
+                // Add a second error to some rows for more coverage
+                 if (index === 2 || index === 4) {
+                    const secondErrorColumn = table.columns[(index + 2) % table.columns.length];
+                     if (secondErrorColumn && !newRow[secondErrorColumn].error) {
+                        const originalValue2 = newRow[secondErrorColumn];
+                         if (secondErrorColumn.toLowerCase().includes('cusip')) {
+                            newRow[secondErrorColumn] = { value: `INVALID${index}`, error: 'CUSIP format is incorrect.' };
+                        } else {
+                            newRow[secondErrorColumn] = { value: `ERR-${originalValue2}`, error: 'Data validation failed.' };
+                        }
+                     }
+                 }
             }
             return newRow;
         });

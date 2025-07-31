@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical, ChevronLeft, ChevronsLeft, ChevronsUpDown, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical, ChevronLeft, ChevronsLeft, ChevronsUpDown, Info, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -412,6 +412,12 @@ export default function ExtractPage() {
     return { paginatedRows, totalPages, totalRows: filteredRows.length };
   }, [searchQueries, sortConfigs, currentPage, rowsPerPage]);
 
+  const countErrorsInTable = (table: { rows: Record<string, any>[] }) => {
+    return table.rows.reduce((acc, row) => {
+        return acc + Object.values(row).filter(cell => typeof cell === 'object' && cell !== null && 'error' in cell).length;
+    }, 0);
+  };
+
   const getStep2PaginatedAndSortedData = useCallback((table: {name: string, columns: string[], rows: Record<string, any>[]}) => {
     const tableId = table.name;
     const rpp = step2RowsPerPage[tableId] || 10;
@@ -507,6 +513,7 @@ export default function ExtractPage() {
                             const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(transactionType);
                             const page = step2CurrentPage[transactionType.name] || 1;
                             const rpp = step2RowsPerPage[transactionType.name] || 10;
+                            const errorCount = countErrorsInTable(transactionType);
 
                             const renderPageNumbers = () => {
                                 const pageNumbers = [];
@@ -529,6 +536,12 @@ export default function ExtractPage() {
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
                                     <h3 className="text-base font-semibold">{transactionType.name}</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        {errorCount > 0 && (
+                                            <div className="flex items-center gap-1.5 text-destructive font-medium text-xs">
+                                                <AlertTriangle className="h-4 w-4" />
+                                                <span>{errorCount} {errorCount === 1 ? 'Error' : 'Errors'}</span>
+                                            </div>
+                                        )}
                                         <ChevronRight className="h-4 w-4" />
                                     </div>
                                 </CollapsibleTrigger>
@@ -625,6 +638,7 @@ export default function ExtractPage() {
                             const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(holdingsData);
                             const page = step2CurrentPage[holdingsData.name] || 1;
                             const rpp = step2RowsPerPage[holdingsData.name] || 10;
+                            const errorCount = countErrorsInTable(holdingsData);
 
                             const renderPageNumbers = () => {
                                 const pageNumbers = [];
@@ -644,8 +658,14 @@ export default function ExtractPage() {
                             return (
                                 <Collapsible key={holdingsData.name} defaultOpen={index === 0} className="rounded-lg border bg-card p-3">
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
-                                    <h3 className="text-base font-semibold">Holdings</h3>
+                                    <h3 className="text-base font-semibold">{holdingsData.name}</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        {errorCount > 0 && (
+                                            <div className="flex items-center gap-1.5 text-destructive font-medium text-xs">
+                                                <AlertTriangle className="h-4 w-4" />
+                                                <span>{errorCount} {errorCount === 1 ? 'Error' : 'Errors'}</span>
+                                            </div>
+                                        )}
                                         <ChevronRight className="h-4 w-4" />
                                     </div>
                                 </CollapsibleTrigger>
@@ -927,179 +947,193 @@ export default function ExtractPage() {
 
         return (
           <div className="w-full max-w-6xl">
-            <Tabs defaultValue={tabList.length > 0 ? tabList[0] : ''}>
-              <TabsList>
-                {tabList.map(parentName => (
-                  <TabsTrigger key={parentName} value={parentName}>
-                    {parentName}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {Object.entries(groupedTables).map(([parentName, tables]) => (
-                <TabsContent key={parentName} value={parentName} className="space-y-4">
-                  {tables.map(table => {
-                    const { paginatedRows, totalPages, totalRows } = getPaginatedAndSortedData(table);
-                    const page = currentPage[table.id] || 1;
-                    const rpp = rowsPerPage[table.id] || 5;
+            {tabList.length > 0 ? (
+                <Tabs defaultValue={tabList[0]}>
+                <TabsList>
+                    {tabList.map(parentName => (
+                    <TabsTrigger key={parentName} value={parentName}>
+                        {parentName}
+                    </TabsTrigger>
+                    ))}
+                </TabsList>
+                {Object.entries(groupedTables).map(([parentName, tables]) => (
+                    <TabsContent key={parentName} value={parentName} className="space-y-4">
+                    {tables.map(table => {
+                        const { paginatedRows, totalPages, totalRows } = getPaginatedAndSortedData(table);
+                        const page = currentPage[table.id] || 1;
+                        const rpp = rowsPerPage[table.id] || 5;
 
-                    const renderPageNumbers = () => {
-                      const pageNumbers = [];
-                      const maxPagesToShow = 5;
-                      let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
-                      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-                      if(endPage - startPage + 1 < maxPagesToShow) {
-                        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-                      }
+                        const renderPageNumbers = () => {
+                        const pageNumbers = [];
+                        const maxPagesToShow = 5;
+                        let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+                        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+                        if(endPage - startPage + 1 < maxPagesToShow) {
+                            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                        }
 
-                      for (let i = startPage; i <= endPage; i++) {
-                        pageNumbers.push(
-                          <Button
-                            key={i}
-                            variant={i === page ? 'default' : 'ghost'}
-                            size="icon"
-                            onClick={() => setCurrentPage(prev => ({...prev, [table.id]: i}))}
-                            className="h-8 w-8"
-                          >
-                            {i}
-                          </Button>
-                        );
-                      }
-                      return pageNumbers;
-                    };
+                        for (let i = startPage; i <= endPage; i++) {
+                            pageNumbers.push(
+                            <Button
+                                key={i}
+                                variant={i === page ? 'default' : 'ghost'}
+                                size="icon"
+                                onClick={() => setCurrentPage(prev => ({...prev, [table.id]: i}))}
+                                className="h-8 w-8"
+                            >
+                                {i}
+                            </Button>
+                            );
+                        }
+                        return pageNumbers;
+                        };
 
-                    return(
-                    <Card key={table.id}>
-                      <CardHeader>
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                              <CardTitle className="text-lg">{table.name}</CardTitle>
-                          </div>
-                      </CardHeader>
-                      <CardContent>
-                         <div className="flex items-center justify-between py-2">
-                              <Input 
-                                  placeholder="Search table..."
-                                  value={searchQueries[table.id] || ''}
-                                  onChange={(e) => handleSearchChange(table.id, e.target.value)}
-                                  className="max-w-sm h-9"
-                              />
-                              <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                      <Button variant="outline" size="icon">
-                                          <MoreVertical className="h-4 w-4" />
-                                          <span className="sr-only">Export options</span>
-                                      </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onSelect={() => exportData('json', table)}>
-                                          JSON
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onSelect={() => exportData('csv', table)}>
-                                          CSV
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onSelect={() => exportData('excel', table)}>
-                                          Excel
-                                      </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                              </DropdownMenu>
-                          </div>
-                        <div className="overflow-x-auto rounded-md border">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                {table.headers.map(h => (
-                                  <TableHead key={h}>
-                                    <Button variant="ghost" onClick={() => handleSort(table.id, h)} className="px-0 h-auto hover:bg-transparent text-xs">
-                                      {h}
-                                      <ArrowUpDown className="ml-2 h-3 w-3" />
-                                    </Button>
-                                  </TableHead>
-                                ))}
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {paginatedRows.map((row, i) => (
-                                <TableRow key={i}>
-                                  {row.map((cell, j) => (
-                                    <TableCell key={j} className="py-2 px-3 text-xs">{cell}</TableCell>
-                                  ))}
+                        return(
+                        <Card key={table.id}>
+                        <CardHeader>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <CardTitle className="text-lg">{table.name}</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center justify-between py-2">
+                                <Input 
+                                    placeholder="Search table..."
+                                    value={searchQueries[table.id] || ''}
+                                    onChange={(e) => handleSearchChange(table.id, e.target.value)}
+                                    className="max-w-sm h-9"
+                                />
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon">
+                                            <MoreVertical className="h-4 w-4" />
+                                            <span className="sr-only">Export options</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => exportData('json', table)}>
+                                            JSON
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => exportData('csv', table)}>
+                                            CSV
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => exportData('excel', table)}>
+                                            Excel
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <div className="overflow-x-auto rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    {table.headers.map(h => (
+                                    <TableHead key={h}>
+                                        <Button variant="ghost" onClick={() => handleSort(table.id, h)} className="px-0 h-auto hover:bg-transparent text-xs">
+                                        {h}
+                                        <ArrowUpDown className="ml-2 h-3 w-3" />
+                                        </Button>
+                                    </TableHead>
+                                    ))}
                                 </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                          <div className="flex items-center justify-between space-x-2 py-2 text-sm text-muted-foreground">
-                              <div>
-                                  <span className="font-medium text-xs">{((page - 1) * rpp) + 1}-{Math.min(page * rpp, totalRows)}</span> of <span className="font-medium text-xs">{totalRows}</span> rows
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs">Rows per page</span>
-                                <Select
-                                    value={String(rpp)}
-                                    onValueChange={(value) => {
-                                        setRowsPerPage(prev => ({...prev, [table.id]: Number(value)}));
-                                        setCurrentPage(prev => ({...prev, [table.id]: 1}));
-                                    }}
-                                >
-                                    <SelectTrigger className="h-7 w-14 text-xs">
-                                        <SelectValue placeholder={rpp} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {[5, 10, 20, 50].map(val => (
-                                            <SelectItem key={val} value={String(val)} className="text-xs">{val}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => setCurrentPage(prev => ({...prev, [table.id]: 1}))}
-                                    disabled={page <= 1}
-                                    className="h-7 w-7"
-                                  >
-                                    <ChevronsLeft className="h-4 w-4" />
-                                    <span className="sr-only">First page</span>
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page - 1}))}
-                                    disabled={page <= 1}
-                                    className="h-7 w-7"
-                                  >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span className="sr-only">Previous page</span>
-                                  </Button>
-                                  {renderPageNumbers()}
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
-                                    disabled={page >= totalPages}
-                                    className="h-7 w-7"
-                                  >
-                                    <ChevronRight className="h-4 w-4" />
-                                    <span className="sr-only">Next page</span>
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => setCurrentPage(prev => ({...prev, [table.id]: totalPages}))}
-                                    disabled={page >= totalPages}
-                                    className="h-7 w-7"
-                                  >
-                                    <ChevronsRight className="h-4 w-4" />
-                                    <span className="sr-only">Last page</span>
-                                  </Button>
-                              </div>
-                          </div>
-                      </CardContent>
-                    </Card>
-                  )})}
-                </TabsContent>
-              ))}
-            </Tabs>
+                                </TableHeader>
+                                <TableBody>
+                                {paginatedRows.map((row, i) => (
+                                    <TableRow key={i}>
+                                    {row.map((cell, j) => (
+                                        <TableCell key={j} className="py-2 px-3 text-xs">{cell}</TableCell>
+                                    ))}
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                            </div>
+                            <div className="flex items-center justify-between space-x-2 py-2 text-sm text-muted-foreground">
+                                <div>
+                                    <span className="font-medium text-xs">{((page - 1) * rpp) + 1}-{Math.min(page * rpp, totalRows)}</span> of <span className="font-medium text-xs">{totalRows}</span> rows
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs">Rows per page</span>
+                                    <Select
+                                        value={String(rpp)}
+                                        onValueChange={(value) => {
+                                            setRowsPerPage(prev => ({...prev, [table.id]: Number(value)}));
+                                            setCurrentPage(prev => ({...prev, [table.id]: 1}));
+                                        }}
+                                    >
+                                        <SelectTrigger className="h-7 w-14 text-xs">
+                                            <SelectValue placeholder={rpp} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {[5, 10, 20, 50].map(val => (
+                                                <SelectItem key={val} value={String(val)} className="text-xs">{val}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setCurrentPage(prev => ({...prev, [table.id]: 1}))}
+                                        disabled={page <= 1}
+                                        className="h-7 w-7"
+                                    >
+                                        <ChevronsLeft className="h-4 w-4" />
+                                        <span className="sr-only">First page</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page - 1}))}
+                                        disabled={page <= 1}
+                                        className="h-7 w-7"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        <span className="sr-only">Previous page</span>
+                                    </Button>
+                                    {renderPageNumbers()}
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setCurrentPage(prev => ({...prev, [table.id]: page + 1}))}
+                                        disabled={page >= totalPages}
+                                        className="h-7 w-7"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                        <span className="sr-only">Next page</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setCurrentPage(prev => ({...prev, [table.id]: totalPages}))}
+                                        disabled={page >= totalPages}
+                                        className="h-7 w-7"
+                                    >
+                                        <ChevronsRight className="h-4 w-4" />
+                                        <span className="sr-only">Last page</span>
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                        </Card>
+                    )})}
+                    </TabsContent>
+                ))}
+                </Tabs>
+            ) : (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>No Data</CardTitle>
+                        <CardDescription>No tables or columns have been configured for export.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button variant="outline" onClick={() => setCurrentStep(3)}>
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Go Back to Configuration
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
           </div>
         );
       default:
@@ -1142,7 +1176,7 @@ export default function ExtractPage() {
           </AnimatePresence>
         </div>
         <div className="flex justify-between w-full max-w-6xl mx-auto">
-          {currentStep > 1 ? (
+          {currentStep > 1 && currentStep < 4 ? (
             <Button variant="outline" onClick={() => setCurrentStep(s => s - 1)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
