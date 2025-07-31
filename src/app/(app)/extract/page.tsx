@@ -439,81 +439,80 @@ export default function ExtractPage() {
           </Card>
         );
     case 2:
-        const dividendTable = mockTransactionTypes.find(t => t.name === 'Dividend');
-        const holdingTable = mockHoldingTypes.find(t => t.name === 'Holdings');
+      const holdingTable = mockHoldingTypes.find(t => t.name === 'Holdings');
 
-        return (
-          <div className="w-full max-w-6xl">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Data as Reported</CardTitle>
-                    <CardDescription>Review the raw data extracted from your document.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="transaction">
-                    <TabsList>
-                        <TabsTrigger value="transaction">Transactions</TabsTrigger>
-                        <TabsTrigger value="holding">Holdings</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="transaction">
-                        <Card>
+      return (
+        <div className="w-full max-w-6xl">
+          <Card>
+              <CardHeader>
+                  <CardTitle className="text-lg">Data as Reported</CardTitle>
+                  <CardDescription>Review the raw data extracted from your document.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <Tabs defaultValue="transaction">
+                  <TabsList>
+                      <TabsTrigger value="transaction">Transactions</TabsTrigger>
+                      <TabsTrigger value="holding">Holdings</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="transaction" className="space-y-4">
+                    {mockTransactionTypes.map(transactionType => (
+                      <Card key={transactionType.name}>
                         <CardHeader>
-                            <CardTitle>Dividend</CardTitle>
+                            <CardTitle>{transactionType.name}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {dividendTable && (
                             <div className="overflow-x-auto rounded-md border">
                                 <Table>
                                 <TableHeader>
                                     <TableRow>
-                                    {dividendTable.columns.map(h => <TableHead key={h}>{h}</TableHead>)}
+                                    {transactionType.columns.map(h => <TableHead key={h}>{h}</TableHead>)}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {dividendTable.rows.map((row, i) => (
+                                    {transactionType.rows.slice(0, 5).map((row, i) => (
                                     <TableRow key={i}>
-                                        {dividendTable.columns.map(col => <TableCell key={col}>{row[col]}</TableCell>)}
+                                        {transactionType.columns.map(col => <TableCell key={col}>{row[col]}</TableCell>)}
                                     </TableRow>
                                     ))}
                                 </TableBody>
                                 </Table>
                             </div>
-                            )}
                         </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="holding">
-                        <Card>
-                        <CardHeader>
-                            <CardTitle>Holdings</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {holdingTable && (
-                             <div className="overflow-x-auto rounded-md border">
-                                <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                    {holdingTable.columns.map(h => <TableHead key={h}>{h}</TableHead>)}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {holdingTable.rows.map((row, i) => (
-                                    <TableRow key={i}>
-                                        {holdingTable.columns.map(col => <TableCell key={col}>{row[col]}</TableCell>)}
-                                    </TableRow>
-                                    ))}
-                                </TableBody>
-                                </Table>
-                             </div>
-                            )}
-                        </CardContent>
-                        </Card>
-                    </TabsContent>
-                    </Tabs>
-                </CardContent>
-            </Card>
-            </div>
-        );
+                      </Card>
+                    ))}
+                  </TabsContent>
+                  <TabsContent value="holding">
+                      <Card>
+                      <CardHeader>
+                          <CardTitle>Holdings</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          {holdingTable && (
+                            <div className="overflow-x-auto rounded-md border">
+                              <Table>
+                              <TableHeader>
+                                  <TableRow>
+                                  {holdingTable.columns.map(h => <TableHead key={h}>{h}</TableHead>)}
+                                  </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                  {holdingTable.rows.map((row, i) => (
+                                  <TableRow key={i}>
+                                      {holdingTable.columns.map(col => <TableCell key={col}>{row[col]}</TableCell>)}
+                                  </TableRow>
+                                  ))}
+                              </TableBody>
+                              </Table>
+                            </div>
+                          )}
+                      </CardContent>
+                      </Card>
+                  </TabsContent>
+                  </Tabs>
+              </CardContent>
+          </Card>
+          </div>
+      );
       case 3:
         return (
             <Card className="w-full max-w-4xl">
