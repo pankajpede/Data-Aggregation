@@ -25,7 +25,13 @@ export const mockExtractedData: { tables: ExtractedTable[] } = {
   ],
 };
 
-export const mockTransactionTypes = [
+type MockTable = {
+    name: string;
+    columns: string[];
+    rows: Record<string, any>[];
+};
+
+export const mockTransactionTypes: MockTable[] = [
     { 
         name: 'Dividend', 
         columns: ['CUSTODIAN_NAME', 'ACCOUNT_NUMBER', 'AS_OF_DATE', 'TRADE_DATE', 'SETTLEMENT_DATE', 'CUSIP', 'TICKER', 'TRANSACTION_CODE', 'NARRATION', 'TXN_AMOUNT', 'TXN_QUANTITY', 'TXN_PRICE', 'Total_Cost_Basis', 'Transaction_Cost', 'SEDOL', 'Accrual_Interest', 'Long_term_income_loss', 'Short_term_income_loss', 'Ticker_Cusip_Name'],
@@ -176,23 +182,48 @@ export const mockTransactionTypes = [
     }
 ];
 
-export const mockHoldingTypes = [
+export const mockHoldingTypes: MockTable[] = [
     { 
         name: 'Holdings', 
         columns: ['Security ID', 'Description', 'Quantity', 'Market Value', 'Portfolio %'],
-        rows: [
-            { 'Security ID': 'AAPL', 'Description': 'Apple Inc.', 'Quantity': '100', 'Market Value': '17000.00', 'Portfolio %': '10.0' },
-            { 'Security ID': 'GOOGL', 'Description': 'Alphabet Inc.', 'Quantity': '50', 'Market Value': '13500.00', 'Portfolio %': '8.0' },
-            { 'Security ID': 'MSFT', 'Description': 'Microsoft Corp.', 'Quantity': '75', 'Market Value': '25500.00', 'Portfolio %': '15.0' },
-            { 'Security ID': 'NVDA', 'Description': 'NVIDIA Corp.', 'Quantity': '35', 'Market Value': '15925.00', 'Portfolio %': '9.4' },
-            { 'Security ID': 'AMZN', 'Description': 'Amazon.com, Inc.', 'Quantity': '60', 'Market Value': '8400.00', 'Portfolio %': '5.0' },
-            { 'Security ID': 'TSLA', 'Description': 'Tesla, Inc.', 'Quantity': '40', 'Market Value': '10000.00', 'Portfolio %': '5.9' },
-            { 'Security ID': 'JPM', 'Description': 'JPMorgan Chase & Co.', 'Quantity': '120', 'Market Value': '16800.00', 'Portfolio %': '9.9' },
-            { 'Security ID': 'V', 'Description': 'Visa Inc.', 'Quantity': '80', 'Market Value': '18400.00', 'Portfolio %': '10.8' },
-            { 'Security ID': 'JNJ', 'Description': 'Johnson & Johnson', 'Quantity': '90', 'Market Value': '14850.00', 'Portfolio %': '8.7' },
-            { 'Security ID': 'WMT', 'Description': 'Walmart Inc.', 'Quantity': '150', 'Market Value': '22500.00', 'Portfolio %': '13.2' },
-            { 'Security ID': 'PG', 'Description': 'Procter & Gamble Co.', 'Quantity': '110', 'Market Value': '17050.00', 'Portfolio %': '10.0' },
-            { 'Security ID': 'UNH', 'Description': 'UnitedHealth Group Inc.', 'Quantity': '25', 'Market Value': '12500.00', 'Portfolio %': '7.4' },
-        ]
+        rows: Array.from({ length: 12 }, (_, i) => {
+            const tickers = ['AAPL', 'GOOGL', 'MSFT', 'NVDA', 'AMZN', 'TSLA', 'JPM', 'V', 'JNJ', 'WMT', 'PG', 'UNH'];
+            const descriptions = ['Apple Inc.', 'Alphabet Inc.', 'Microsoft Corp.', 'NVIDIA Corp.', 'Amazon.com, Inc.', 'Tesla, Inc.', 'JPMorgan Chase & Co.', 'Visa Inc.', 'Johnson & Johnson', 'Walmart Inc.', 'Procter & Gamble Co.', 'UnitedHealth Group Inc.'];
+            const quantity = 100 + i * 5;
+            const marketValue = 15000 + i * 500;
+            const portfolio = 5 + i * 0.2;
+            return {
+                'Security ID': tickers[i],
+                'Description': descriptions[i],
+                'Quantity': `${quantity}`,
+                'Market Value': `${marketValue.toFixed(2)}`,
+                'Portfolio %': `${portfolio.toFixed(1)}`
+            }
+        })
     },
 ];
+
+export const getMockDataWithErrors = (mockData: MockTable[]) => {
+    return mockData.map(table => {
+        const newRows = table.rows.map((row, index) => {
+            const newRow = { ...row };
+            if (index < 4) { // Add errors to the first 4 rows
+                const errorColumn = table.columns[index % table.columns.length];
+                const originalValue = newRow[errorColumn];
+                if (table.name === 'Holdings' && errorColumn === 'Quantity') {
+                    newRow[errorColumn] = { value: 'INVALID_QNTY', error: 'Invalid data format: Expected a number.' };
+                } else if (errorColumn.includes('_DATE')) {
+                     newRow[errorColumn] = { value: '2023/13/45', error: 'Invalid date format.' };
+                } else if (errorColumn.includes('AMOUNT') || errorColumn.includes('PRICE')) {
+                     newRow[errorColumn] = { value: `ABC${originalValue}`, error: 'Invalid numeric value.' };
+                } else if (errorColumn === 'TICKER') {
+                     newRow[errorColumn] = { value: 12345, error: 'Invalid ticker symbol: Expected a string.' };
+                } else {
+                     newRow[errorColumn] = { value: originalValue, error: 'Unspecified data validation error.' };
+                }
+            }
+            return newRow;
+        });
+        return { ...table, rows: newRows };
+    });
+};

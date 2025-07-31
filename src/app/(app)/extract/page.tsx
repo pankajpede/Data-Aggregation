@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { labelColumns } from '@/ai/flows/label-columns';
-import { mockExtractedData, mockTransactionTypes, mockHoldingTypes } from '@/lib/mock-data';
+import { mockExtractedData, mockTransactionTypes, mockHoldingTypes, getMockDataWithErrors } from '@/lib/mock-data';
 import type { ExtractedTable } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical, ChevronLeft, ChevronsLeft, ChevronsUpDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, FileUp, Loader2, Sparkles, UploadCloud, ChevronsRight, PlusCircle, ArrowUpDown, MoreVertical, ChevronLeft, ChevronsLeft, ChevronsUpDown, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -60,6 +60,11 @@ export default function ExtractPage() {
   const [sortConfigs, setSortConfigs] = useState<Record<string, SortConfig | null>>({});
   const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
   const [rowsPerPage, setRowsPerPage] = useState<Record<string, number>>({});
+
+  const [step2Data, setStep2Data] = useState({
+      transactions: getMockDataWithErrors(mockTransactionTypes),
+      holdings: getMockDataWithErrors(mockHoldingTypes)
+  });
 
   const [step2SearchQueries, setStep2SearchQueries] = useState<Record<string, string>>({});
   const [step2SortConfigs, setStep2SortConfigs] = useState<Record<string, SortConfig | null>>({});
@@ -121,7 +126,7 @@ export default function ExtractPage() {
 
             // Use specific mock rows for each subtype
             const finalRows = typeInfo.rows.map(rowObj => 
-                includedHeaders.map(header => rowObj[header] ?? '')
+                includedHeaders.map(header => (rowObj as Record<string, string>)[header] ?? '')
             );
             
             tables.push({
@@ -146,7 +151,7 @@ export default function ExtractPage() {
               return tableConfig.find(c => c.originalHeader === originalHeader)!.newHeader;
             });
             const finalRows = typeInfo.rows.map(rowObj =>
-              includedHeaders.map(header => rowObj[header] ?? '')
+              includedHeaders.map(header => (rowObj as Record<string, string>)[header] ?? '')
             );
              tables.push({
               id: `${table.id}-${holdingType}`,
@@ -270,11 +275,17 @@ export default function ExtractPage() {
     }
   };
 
-  const exportData = (format: 'csv' | 'json' | 'excel', table: {name: string, headers: string[], rows: (string[] | Record<string,string>)[]}) => {
+  const exportData = (format: 'csv' | 'json' | 'excel', table: {name: string, headers: string[], rows: (string[] | Record<string,any>)[]}) => {
     
     const rowsAsArrays = table.rows.map(row => {
         if (Array.isArray(row)) return row;
-        return table.headers.map(header => row[header] ?? '');
+        return table.headers.map(header => {
+            const cell = row[header];
+            if(typeof cell === 'object' && cell !== null && 'value' in cell) {
+                return cell.value;
+            }
+            return cell ?? '';
+        });
     });
 
     const dataToExport = rowsAsArrays.map(row => {
@@ -401,7 +412,7 @@ export default function ExtractPage() {
     return { paginatedRows, totalPages, totalRows: filteredRows.length };
   }, [searchQueries, sortConfigs, currentPage, rowsPerPage]);
 
-  const getStep2PaginatedAndSortedData = useCallback((table: {name: string, columns: string[], rows: Record<string, string>[]}) => {
+  const getStep2PaginatedAndSortedData = useCallback((table: {name: string, columns: string[], rows: Record<string, any>[]}) => {
     const tableId = table.name;
     const rpp = step2RowsPerPage[tableId] || 10;
     const query = step2SearchQueries[tableId] || '';
@@ -412,14 +423,17 @@ export default function ExtractPage() {
 
     if (query) {
         filteredRows = table.rows.filter(row =>
-            Object.values(row).some(cell => String(cell).toLowerCase().includes(query.toLowerCase()))
+            Object.values(row).some(cell => {
+                const value = (typeof cell === 'object' && cell !== null && 'value' in cell) ? cell.value : cell;
+                return String(value).toLowerCase().includes(query.toLowerCase());
+            })
         );
     }
 
     if (sortConfig) {
         filteredRows.sort((a, b) => {
-            const valA = a[sortConfig.key];
-            const valB = b[sortConfig.key];
+            const valA = (typeof a[sortConfig.key] === 'object' && a[sortConfig.key] !== null && 'value' in a[sortConfig.key]) ? a[sortConfig.key].value : a[sortConfig.key];
+            const valB = (typeof b[sortConfig.key] === 'object' && b[sortConfig.key] !== null && 'value' in b[sortConfig.key]) ? b[sortConfig.key].value : b[sortConfig.key];
             if (valA < valB) return sortConfig.direction === 'ascending' ? -1 : 1;
             if (valA > valB) return sortConfig.direction === 'ascending' ? 1 : -1;
             return 0;
@@ -481,7 +495,6 @@ export default function ExtractPage() {
           </Card>
         );
       case 2:
-        const holdingsData = mockHoldingTypes[0];
         return (
             <div className="w-full max-w-6xl">
                 <Tabs defaultValue="transaction">
@@ -490,7 +503,7 @@ export default function ExtractPage() {
                         <TabsTrigger value="holding">Holdings</TabsTrigger>
                     </TabsList>
                     <TabsContent value="transaction" className="space-y-2">
-                        {mockTransactionTypes.map(transactionType => {
+                        {step2Data.transactions.map(transactionType => {
                             const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(transactionType);
                             const page = step2CurrentPage[transactionType.name] || 1;
                             const rpp = step2RowsPerPage[transactionType.name] || 10;
@@ -557,7 +570,31 @@ export default function ExtractPage() {
                                         <TableBody>
                                             {paginatedRows.map((row, i) => (
                                             <TableRow key={i}>
-                                                {transactionType.columns.map(col => <TableCell key={col} className="py-2 px-3 text-xs">{row[col]}</TableCell>)}
+                                                {transactionType.columns.map(col => {
+                                                    const cellData = row[col];
+                                                    const hasError = typeof cellData === 'object' && cellData !== null && 'error' in cellData;
+                                                    const value = hasError ? cellData.value : cellData;
+                                                    
+                                                    return (
+                                                        <TableCell key={col} className={`py-2 px-3 text-xs ${hasError ? 'bg-red-900/20' : ''}`}>
+                                                          <div className="flex items-center gap-1">
+                                                            {value}
+                                                            {hasError && (
+                                                              <TooltipProvider>
+                                                                <Tooltip>
+                                                                  <TooltipTrigger>
+                                                                    <Info className="h-3 w-3 text-destructive" />
+                                                                  </TooltipTrigger>
+                                                                  <TooltipContent>
+                                                                    <p>{cellData.error}</p>
+                                                                  </TooltipContent>
+                                                                </Tooltip>
+                                                              </TooltipProvider>
+                                                            )}
+                                                          </div>
+                                                        </TableCell>
+                                                    );
+                                                })}
                                             </TableRow>
                                             ))}
                                         </TableBody>
@@ -585,7 +622,7 @@ export default function ExtractPage() {
                         )})}
                     </TabsContent>
                     <TabsContent value="holding">
-                        {(() => {
+                        {step2Data.holdings.map(holdingsData => {
                             const { paginatedRows, totalPages, totalRows } = getStep2PaginatedAndSortedData(holdingsData);
                             const page = step2CurrentPage[holdingsData.name] || 1;
                             const rpp = step2RowsPerPage[holdingsData.name] || 10;
@@ -606,7 +643,7 @@ export default function ExtractPage() {
                                 return pageNumbers;
                             };
                             return (
-                                <Collapsible className="rounded-lg border bg-card p-3">
+                                <Collapsible key={holdingsData.name} className="rounded-lg border bg-card p-3">
                                 <CollapsibleTrigger className="flex w-full items-center justify-between">
                                     <h3 className="text-base font-semibold">Holdings</h3>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -651,7 +688,31 @@ export default function ExtractPage() {
                                         <TableBody>
                                             {paginatedRows.map((row, i) => (
                                             <TableRow key={i}>
-                                                {holdingsData.columns.map(col => <TableCell key={col} className="py-2 px-3 text-xs">{row[col]}</TableCell>)}
+                                                {holdingsData.columns.map(col => {
+                                                    const cellData = row[col];
+                                                    const hasError = typeof cellData === 'object' && cellData !== null && 'error' in cellData;
+                                                    const value = hasError ? cellData.value : cellData;
+
+                                                    return (
+                                                        <TableCell key={col} className={`py-2 px-3 text-xs ${hasError ? 'bg-red-900/20' : ''}`}>
+                                                          <div className="flex items-center gap-1">
+                                                            {value}
+                                                            {hasError && (
+                                                              <TooltipProvider>
+                                                                <Tooltip>
+                                                                  <TooltipTrigger>
+                                                                    <Info className="h-3 w-3 text-destructive" />
+                                                                  </TooltipTrigger>
+                                                                  <TooltipContent>
+                                                                    <p>{cellData.error}</p>
+                                                                  </TooltipContent>
+                                                                </Tooltip>
+                                                              </TooltipProvider>
+                                                            )}
+                                                          </div>
+                                                        </TableCell>
+                                                    );
+                                                })}
                                             </TableRow>
                                             ))}
                                         </TableBody>
@@ -677,7 +738,7 @@ export default function ExtractPage() {
                                 </CollapsibleContent>
                                 </Collapsible>
                             )
-                        })()}
+                        })}
                     </TabsContent>
                 </Tabs>
             </div>
